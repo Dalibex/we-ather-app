@@ -7,7 +7,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Unreleased]
 
-### Added
+### Añadido
 
 - Base del repositorio: README, guía de contribución, código de conducta, política de seguridad,
   instrucciones para agentes (`AGENTS.md`), plantillas de issue y pull request, y configuración

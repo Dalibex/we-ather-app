@@ -11,8 +11,8 @@ Proyecto del grupo NeoForge.
 
 ## Estado actual
 
-El proyecto está en su fase inicial: se está montando la base del repositorio en la rama
-`boilerplate`. Todavía no hay código ni versión publicada.
+El proyecto está en su fase inicial: el repositorio tiene su base (documentación, plantillas e
+integración continua), pero todavía no hay código ni versión publicada.
 
 | Parte | Estado |
 | --- | --- |
