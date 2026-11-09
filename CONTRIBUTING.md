@@ -14,7 +14,8 @@ Las issues siguen la misma estructura que el tablero de ClickUp:
   y su prioridad.
 - **Tarea** (`[T-XX.n]: título`): un bloque de trabajo de la HU, de **6 horas como máximo** (si
   pasa de 6 h, se divide). Indica la HU, la estimación, la incertidumbre, el responsable, el
-  revisor y de qué depende. Se añade como sub-issue de su HU y no repite sus criterios.
+  revisor y de qué depende. Se añade como sub-issue de su HU y no repite sus criterios. Una tarea
+  de configuración o mantenimiento (el esqueleto, la CI, una guía) puede no tener HU.
 - **Bug** (`[Bug]: título`): un error, con los pasos para reproducirlo.
 
 Estados de una tarea: Pendiente → Sprint Backlog → En curso → En revisión → Completado. Si una tarea

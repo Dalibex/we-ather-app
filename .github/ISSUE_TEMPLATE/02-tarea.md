@@ -1,13 +1,13 @@
 ---
 name: Tarea
-about: Una tarea de una HU (máximo 6 h)
+about: Una tarea de una HU, o de configuración o mantenimiento (máximo 6 h)
 title: "[T-XX.n]: "
 labels: ["tarea"]
 ---
 
 ## Qué hay que hacer
 
-HU: #
+HU: # (o "ninguna" si es configuración o mantenimiento)
 
 ## Estimación
 
