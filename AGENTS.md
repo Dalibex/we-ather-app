@@ -48,6 +48,7 @@ Restricciones que no se negocian:
 | Qué hay que hacer y en qué sprint | Las issues de historia de usuario (`[HU-XX]`) y sus tareas (`[T-XX.n]`), con su milestone |
 | Arranque local y comandos | `docs/development.md` (pendiente) |
 | Flujo de trabajo, ramas, commits, PRs y Definition of Done | `CONTRIBUTING.md` |
+| Integración continua y sus jobs | `.github/workflows/ci.yml`, `.github/workflows/pr-title.yml` |
 | Cambios por versión | `CHANGELOG.md` |
 
 Un documento marcado como *pendiente* todavía no existe: no lo des por hecho.

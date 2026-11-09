@@ -12,3 +12,5 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - Base del repositorio: README, guía de contribución, código de conducta, política de seguridad,
   instrucciones para agentes (`AGENTS.md`), plantillas de issue y pull request, y configuración
   común (`.gitignore`, `.gitattributes`, `.editorconfig`).
+- Integración continua: comprobación del título de las pull requests y jobs `lint`, `test`,
+  `frontend` y `build`, que se saltan sus pasos mientras no exista su parte del proyecto.
