@@ -63,6 +63,10 @@ Un documento marcado como *pendiente* todavía no existe: no lo des por hecho.
 - **TDD:** cada comportamiento nuevo empieza por una prueba que falla.
 - **Configuración y secretos:** fuera del código. `.env` nunca se versiona; `.env.example`, con
   valores de ejemplo, sí.
+- **Alcance según los documentos:** ciñete al MoSCoW del ConOps y a las HU del backlog. No
+  propongas funcionalidades, componentes ni herramientas que no recojan. Si algo no está cubierto,
+  dilo y déjalo para que el equipo lo decida (el Product Owner en el alcance, el Sprint Planning en
+  lo técnico).
 - **Diseño simple:** implementa solo lo que piden los criterios de aceptación. No añadas
   componentes ni dependencias sin un problema observable que los justifique.
 - **Estructura:** la raíz solo guarda lo compartido; cada parte desplegable va en su carpeta. No
