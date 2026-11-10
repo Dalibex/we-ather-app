@@ -25,9 +25,18 @@ integración continua), pero todavía no hay código ni versión publicada.
 Se documentará en `docs/development.md` cuando exista el esqueleto del proyecto. El objetivo es que
 baste con clonar el repositorio, copiar `.env.example` a `.env` y seguir esa guía.
 
+## Documentación
+
+- [ConOps](docs/PDF%20Entregados/DocumentoConOps.pdf): propósito, actores, objetivos y alcance
+  (MoSCoW).
+- [Diagrama Tropos](docs/ESQUEMA_TROPOS.png): dependencias entre actores y objetivos.
+- [Práctica 3-6: Gestión](docs/PDF%20Entregados/Pr%C3%A1ctica%203-6%20Gesti%C3%B3n.pdf):
+  priorización, planificación del Sprint 1, métricas y proceso Scrum.
+- [Grabaciones de los Scrum Meetings](docs/dailys/README.md): dónde están y cómo pedir acceso.
+
 ## Contribuir
 
-- [Guía de contribución](CONTRIBUTING.md): ramas, commits, issues y pull requests.
+- [Guía de contribución](CONTRIBUTING.md): roles, eventos, ramas, commits, issues y pull requests.
 - [Código de conducta](CODE_OF_CONDUCT.md).
 - [Política de seguridad](SECURITY.md): cómo informar de una vulnerabilidad.
 - [Changelog](CHANGELOG.md): cambios de cada versión.
