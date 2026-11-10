@@ -1,0 +1,234 @@
+# Integración continua de WEather.
+#
+# Jobs (sus nombres son los status checks obligatorios del ruleset de main: no los cambies):
+#   lint     → ningún .env versionado, Docker Compose válido y formato del backend (si hay Spotless)
+#   test     → compilación y pruebas unitarias y de integración del backend (./mvnw verify)
+#   frontend → formato, lint, tipos, pruebas y build de los clientes (scripts de pnpm que existan)
+#   build    → construye la imagen Docker del backend (si hay Dockerfile)
+#
+# Permisiva a propósito: cada job comprueba primero si existe su parte del proyecto. Si todavía no
+# existe (por ejemplo, no hay backend/pom.xml), sus pasos se saltan y el job termina en verde, así
+# que los checks obligatorios no bloquean las PRs mientras se monta el esqueleto.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un push nuevo a una PR cancela la ejecución que siga en curso. En main nunca se cancela.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Carpeta con pom.xml y mvnw, relativa a la raíz.
+  BACKEND_DIR: backend
+  # Carpeta del workspace de los clientes (package.json con "packageManager"), relativa a la raíz.
+  FRONTEND_DIR: frontend
+  JAVA_VERSION: "25"
+  JAVA_DISTRIBUTION: temurin
+  # Maven sin barra de progreso ni preguntas.
+  MAVEN_ARGS: -B -ntp
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Ningún .env versionado
+        run: |
+          tracked=$(git ls-files | grep -E '(^|/)\.env$' || true)
+          if [ -n "$tracked" ]; then
+            echo "::error title=Configuración::Hay archivos .env versionados: $tracked. Solo se versiona .env.example."
+            exit 1
+          fi
+          echo "Ningún .env versionado."
+
+      - name: Docker Compose válido con .env.example
+        run: |
+          compose=$(git ls-files | grep -E '(^|/)(docker-)?compose\.ya?ml$' || true)
+          if [ -z "$compose" ]; then echo "No hay archivo de Compose, nada que comprobar."; exit 0; fi
+          for file in $compose; do
+            dir=$(dirname "$file")
+            if [ -f "$dir/.env.example" ]; then cp "$dir/.env.example" "$dir/.env"; fi
+            docker compose -f "$file" config --quiet
+            echo "$file es válido (solo se analiza, no arranca ningún contenedor)."
+          done
+
+      - name: ¿Hay formateador en el backend?
+        id: spotless
+        run: |
+          if [ -f "$BACKEND_DIR/pom.xml" ] && grep -q spotless-maven-plugin "$BACKEND_DIR/pom.xml"; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Sin Spotless en $BACKEND_DIR/pom.xml: no se comprueba el formato del backend." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Preparar Java
+        if: steps.spotless.outputs.enabled == 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          cache-dependency-path: ${{ env.BACKEND_DIR }}/pom.xml
+
+      - name: Formato del backend (Spotless)
+        if: steps.spotless.outputs.enabled == 'true'
+        working-directory: ${{ env.BACKEND_DIR }}
+        run: |
+          chmod +x mvnw
+          if ! ./mvnw spotless:check; then
+            echo "::error title=Formato::Hay archivos sin formatear. Ejecuta ./mvnw spotless:apply en $BACKEND_DIR/, haz commit y vuelve a subir."
+            exit 1
+          fi
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: ¿Hay backend?
+        id: backend
+        run: |
+          if [ -f "$BACKEND_DIR/pom.xml" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Todavía no hay $BACKEND_DIR/pom.xml: no hay pruebas del backend que ejecutar." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Preparar Java
+        if: steps.backend.outputs.exists == 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          cache-dependency-path: ${{ env.BACKEND_DIR }}/pom.xml
+
+      # El formato lo comprueba lint, así que un espacio de más nunca pone este job en rojo.
+      - name: Pruebas unitarias y de integración
+        if: steps.backend.outputs.exists == 'true'
+        working-directory: ${{ env.BACKEND_DIR }}
+        run: |
+          chmod +x mvnw
+          ./mvnw -Dspotless.check.skip=true verify
+
+      - name: Publicar informes
+        if: always() && steps.backend.outputs.exists == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: informes-pruebas
+          path: |
+            ${{ env.BACKEND_DIR }}/target/surefire-reports/
+            ${{ env.BACKEND_DIR }}/target/failsafe-reports/
+            ${{ env.BACKEND_DIR }}/target/site/jacoco*/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: ¿Hay clientes?
+        id: clients
+        run: |
+          if [ -f "$FRONTEND_DIR/package.json" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            if [ -f "$FRONTEND_DIR/.nvmrc" ]; then node=$(cat "$FRONTEND_DIR/.nvmrc"); else node='lts/*'; fi
+            echo "node=$node" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Todavía no hay $FRONTEND_DIR/package.json: no hay clientes que comprobar." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # La versión de pnpm sale de "packageManager" en package.json.
+      - name: Preparar pnpm
+        if: steps.clients.outputs.exists == 'true'
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: ${{ env.FRONTEND_DIR }}/package.json
+
+      # La versión de Node sale de .nvmrc; si no hay, se usa la LTS.
+      - name: Preparar Node
+        if: steps.clients.outputs.exists == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ steps.clients.outputs.node }}
+
+      - name: Instalar dependencias
+        if: steps.clients.outputs.exists == 'true'
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            echo "::warning title=Lockfile::No hay pnpm-lock.yaml: se instala sin él. Súbelo para que la CI instale lo mismo que en local."
+            pnpm install
+          fi
+
+      # Un paso por comprobación, para que el nombre del paso en rojo diga qué ha fallado.
+      # Solo se ejecutan los scripts que existan en package.json.
+      - name: Formato
+        if: steps.clients.outputs.exists == 'true'
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: pnpm run --if-present format:check
+
+      - name: Lint
+        if: steps.clients.outputs.exists == 'true'
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: pnpm run --if-present lint
+
+      - name: Tipos
+        if: steps.clients.outputs.exists == 'true'
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: pnpm run --if-present typecheck
+
+      - name: Pruebas
+        if: steps.clients.outputs.exists == 'true'
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: pnpm run --if-present test
+
+      - name: Build
+        if: steps.clients.outputs.exists == 'true'
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: pnpm run --if-present build
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: ¿Hay Dockerfile?
+        id: docker
+        run: |
+          if [ -f "$BACKEND_DIR/Dockerfile" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Todavía no hay $BACKEND_DIR/Dockerfile: no hay imagen que construir." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Construir la imagen del backend
+        if: steps.docker.outputs.exists == 'true'
+        working-directory: ${{ env.BACKEND_DIR }}
+        run: docker build -t "weather-backend:${{ github.sha }}" .

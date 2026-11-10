@@ -1,0 +1,155 @@
+#!/bin/sh
+# pre-commit: formatea los archivos preparados (staged) y añade el resultado al mismo commit, así que
+# cada commit ya llega formateado. La CI (jobs lint y frontend) solo comprueba; nunca cambia código.
+#   - Java (*.java): Spotless con google-java-format AOSP, mediante ./mvnw
+#   - Clientes (TypeScript, JavaScript, CSS, JSON, YAML y HTML dentro de frontend/): Prettier, mediante pnpm
+#
+# Lo instala cualquier build local de ./mvnw (perfil install-git-hooks del pom.xml).
+# Para saltarlo en un commit:  SKIP_FORMAT=1 git commit ...   (o git commit --no-verify)
+# Documentación: docs/development.md
+
+set -eu
+
+# Carpeta con pom.xml y mvnw, relativa a la raíz (la misma que BACKEND_DIR en ci.yml).
+BACKEND_DIR="backend"
+# Carpeta del workspace de pnpm de los clientes, relativa a la raíz (la misma que FRONTEND_DIR en ci.yml).
+FRONTEND_DIR="frontend"
+
+if [ "${SKIP_FORMAT:-0}" = "1" ]; then
+    echo "pre-commit: SKIP_FORMAT=1, no se formatea (la CI lo seguirá comprobando)."
+    exit 0
+fi
+
+cd "$(git rev-parse --show-toplevel)"
+
+# Un archivo por línea (las rutas con espacios se mantienen enteras) y sin expandir comodines.
+IFS='
+'
+set -f
+
+# Un archivo con cambios preparados Y sin preparar no se puede volver a preparar sin meter también
+# la parte sin preparar en el commit, así que se para y decide quien desarrolla.
+stop_if_partially_staged() {
+    # shellcheck disable=SC2086 # se quiere separar por saltos de línea
+    partial=$(git diff --name-only -- $1)
+    if [ -n "$partial" ]; then
+        echo "pre-commit: estos archivos tienen cambios sin preparar:"
+        printf '%s\n' "$partial" | sed 's/^/  /'
+        echo "Formatearlos añadiría esos cambios a este commit."
+        echo "Prepara el archivo entero (git add <archivo>) o guarda el resto (git stash --keep-index) y vuelve a hacer el commit."
+        exit 1
+    fi
+}
+
+# Vuelve a añadir al commit los archivos que ha cambiado el formateador.
+restage_formatted() {
+    # shellcheck disable=SC2086
+    changed=$(git diff --name-only -- $1)
+    if [ -n "$changed" ]; then
+        echo "pre-commit: formateados y añadidos a este commit:"
+        printf '%s\n' "$changed" | sed 's/^/  /'
+        # shellcheck disable=SC2086
+        git add -- $changed
+    fi
+}
+
+format_java() {
+    files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.java')
+    if [ -z "$files" ]; then
+        return 0 # no hay Java en este commit: no se arranca Maven
+    fi
+
+    stop_if_partially_staged "$files"
+
+    # -DspotlessFiles recibe expresiones regulares separadas por comas que se comparan con rutas
+    # absolutas. Se construye una por archivo; [\\/] acepta / y \, así que también funciona en Windows.
+    patterns=""
+    for f in $files; do
+        escaped=$(printf '%s\n' "$f" | sed -e 's/[][\.*^$+?(){}|]/\\&/g' -e 's#/#[\\\\/]#g')
+        patterns="${patterns:+$patterns,}.*[\\\\/]$escaped"
+    done
+
+    count=$(printf '%s\n' "$files" | wc -l | tr -d ' ')
+    echo "pre-commit: formateando $count archivo(s) Java con Spotless..."
+
+    if ! out=$(cd "$BACKEND_DIR" && sh ./mvnw -q spotless:apply -DspotlessFiles="$patterns" 2>&1); then
+        # Maven ni siquiera arranca: JAVA_HOME mal puesto, un JDK anterior al 25 o un Git sin cygpath
+        # (el que trae GitHub Desktop), que mvnw necesita para convertir JAVA_HOME. Es un problema de
+        # esta máquina, no del código, así que no se bloquea el commit: la CI (job lint) lo comprueba.
+        if printf '%s\n' "$out" | grep -qE 'JAVA_HOME|release version .* not supported|UnsupportedClassVersionError|class file version|cygpath'; then
+            echo "pre-commit: AVISO - Maven no ha podido ejecutarse, así que estos archivos NO se han formateado:"
+            printf '%s\n' "$files" | sed 's/^/  /'
+            printf '%s\n' "$out" | grep -v '^\[' | head -3 | sed 's/^/  /'
+            echo "  JAVA_HOME=${JAVA_HOME:-<sin definir>}"
+            echo "  El commit sigue adelante; el job lint de la CI fallará si no están formateados."
+            echo "  Solución: ejecuta ./mvnw spotless:apply desde una terminal, o haz el commit desde una terminal o IntelliJ."
+            return 0
+        fi
+        # Maven ha arrancado y Spotless ha fallado: normalmente, un archivo con un error de sintaxis. Se bloquea.
+        echo "pre-commit: spotless:apply ha fallado. Primeros errores:"
+        errors=$(printf '%s\n' "$out" | grep -E '^\[ERROR\]' | head -5)
+        if [ -n "$errors" ]; then
+            printf '%s\n' "$errors" | sed 's/^/  /'
+        else
+            # Los fallos fuera del log de Maven (wrapper, shell, entorno) no tienen líneas [ERROR].
+            printf '%s\n' "$out" | grep -v '^WARNING' | tail -10 | sed 's/^/  /'
+        fi
+        echo "Corrige el archivo, o haz el commit igualmente con SKIP_FORMAT=1 git commit ... (el job lint fallará hasta que esté formateado)."
+        exit 1
+    fi
+
+    restage_formatted "$files"
+}
+
+format_client() {
+    # Sin magia de glob, * en un pathspec también acepta /, así que cubre todas las subcarpetas.
+    # Los mismos tipos de archivo que comprueba `pnpm format:check` en el job frontend.
+    files=$(git diff --cached --name-only --diff-filter=ACMR -- \
+        "$FRONTEND_DIR/*.ts" "$FRONTEND_DIR/*.tsx" "$FRONTEND_DIR/*.js" "$FRONTEND_DIR/*.mjs" \
+        "$FRONTEND_DIR/*.cjs" "$FRONTEND_DIR/*.css" "$FRONTEND_DIR/*.json" \
+        "$FRONTEND_DIR/*.yaml" "$FRONTEND_DIR/*.yml" "$FRONTEND_DIR/*.html")
+    if [ -z "$files" ]; then
+        return 0 # no hay archivos de los clientes en este commit: no se arranca pnpm
+    fi
+    # Prettier se ejecuta dentro del workspace, así que recibe las rutas relativas a él.
+    workspace_files=$(printf '%s\n' "$files" | sed "s#^$FRONTEND_DIR/##")
+
+    stop_if_partially_staged "$files"
+
+    count=$(printf '%s\n' "$files" | wc -l | tr -d ' ')
+    echo "pre-commit: formateando $count archivo(s) de los clientes con Prettier..."
+
+    # Sin pnpm o sin dependencias instaladas: problema de esta máquina, no del código.
+    # La misma regla que con Maven: se avisa y el commit sigue; la CI (job frontend) lo comprueba.
+    if ! command -v pnpm >/dev/null 2>&1 || [ ! -d "$FRONTEND_DIR/node_modules" ]; then
+        echo "pre-commit: AVISO - pnpm o las dependencias de los clientes no están disponibles, así que estos archivos NO se han formateado:"
+        printf '%s\n' "$files" | sed 's/^/  /'
+        echo "  El commit sigue adelante; el job frontend de la CI fallará si no están formateados."
+        echo "  Solución: instala pnpm, ejecuta pnpm install en $FRONTEND_DIR/ y después pnpm format."
+        return 0
+    fi
+
+    # --ignore-unknown: salta los archivos que Prettier no sabe leer en vez de fallar.
+    # shellcheck disable=SC2086
+    if ! out=$(cd "$FRONTEND_DIR" && pnpm exec prettier --write --ignore-unknown -- $workspace_files 2>&1); then
+        if printf '%s\n' "$out" | grep -q 'Command "prettier" not found'; then
+            echo "pre-commit: AVISO - Prettier no está instalado en el workspace, así que estos archivos NO se han formateado:"
+            printf '%s\n' "$files" | sed 's/^/  /'
+            echo "  El commit sigue adelante; el job frontend de la CI fallará si no están formateados."
+            echo "  Solución: ejecuta pnpm install en $FRONTEND_DIR/."
+            return 0
+        fi
+        # Prettier ha arrancado y ha fallado: normalmente, un archivo con un error de sintaxis. Se bloquea.
+        echo "pre-commit: Prettier ha fallado. Primeros errores:"
+        printf '%s\n' "$out" | grep -iE 'error' | head -5 | sed 's/^/  /'
+        echo "Corrige el archivo, o haz el commit igualmente con SKIP_FORMAT=1 git commit ... (el job frontend fallará hasta que esté formateado)."
+        exit 1
+    fi
+
+    restage_formatted "$files"
+}
+
+format_java
+format_client
+
+exit 0

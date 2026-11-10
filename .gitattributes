@@ -1,0 +1,13 @@
+# Normaliza los finales de línea a LF en el repositorio (CRLF rompe scripts de shell y comprobaciones de formato)
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
