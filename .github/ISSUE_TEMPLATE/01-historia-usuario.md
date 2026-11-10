@@ -16,6 +16,8 @@ Como <usuario>, quiero <acción> para <beneficio>.
 
 ## Criterios de aceptación
 
+Cada criterio tendrá una prueba de aceptación asociada.
+
 - [ ]
 
 ## Tareas

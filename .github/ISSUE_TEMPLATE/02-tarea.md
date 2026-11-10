@@ -23,6 +23,13 @@ HU: # (o "ninguna" si es configuración o mantenimiento)
 
 - Ninguna / #
 
+## Pruebas que la guían
+
+Se desarrolla con TDD: estas pruebas se escriben primero y fallan antes de escribir el código.
+
+-
+
 ## Terminada cuando
 
+- [ ] Las pruebas se escribieron antes que el código y están en verde.
 - [ ]
