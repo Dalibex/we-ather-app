@@ -1,0 +1,25 @@
+# Actualizaciones automáticas de dependencias.
+#
+# De momento solo vigila las GitHub Actions de .github/workflows/. Cuando exista el esqueleto, se
+# añade un bloque por cada parte (maven en /backend, npm en /frontend): Dependabot falla si el
+# directorio todavía no existe.
+#
+# Sus PRs pasan por el mismo ruleset que las demás: CI en verde y la aprobación de una persona.
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Madrid
+    # Todas las actualizaciones de la semana en una sola PR.
+    groups:
+      github-actions:
+        patterns: ["*"]
+    # El título queda como "ci(deps): ...", que acepta el check pr-title.
+    commit-message:
+      prefix: ci
+      include: scope
+    labels: ["tarea"]
