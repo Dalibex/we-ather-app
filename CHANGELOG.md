@@ -19,8 +19,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   el README, la guía de contribución y `AGENTS.md`.
 - Guía de contribución con los roles, los eventos Scrum, los acuerdos del equipo, la relación entre
   ClickUp y GitHub y la estrategia de pruebas.
-- Esqueleto del proyecto, servidor Spring Boot con PostgreSQL,
-  PostGIS y Flyway en `backend/`, app móvil (Expo) y panel de administración (Vite y React) en
-  `frontend/`, y hook `pre-commit` que formatea el código. Decisión en
-  `docs/adr/0001-esqueleto-y-stack.md` y arranque en `docs/development.md`.
+- Esqueleto del proyecto: servidor Spring Boot con PostgreSQL, PostGIS y Flyway en `backend/`, app
+  móvil (Expo) y panel de administración (Vite y React) en `frontend/`, y hook `pre-commit` que
+  formatea el código. El arranque está en `docs/development.md`.
 - Dependabot vigila también las dependencias de Maven y de pnpm.

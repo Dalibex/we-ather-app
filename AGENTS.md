@@ -49,7 +49,6 @@ Restricciones que no se negocian:
 | Priorización, planificación del sprint y proceso Scrum | `docs/PDF Entregados/Práctica 3-6 Gestión.pdf`; lo que afecta al día a día está resumido en `CONTRIBUTING.md` |
 | Qué hay que hacer y en qué sprint | Las issues de historia de usuario (`[HU-XX]`) y sus tareas (`[T-XX.n]`), con su milestone |
 | Arranque local y comandos | `docs/development.md` |
-| Decisiones de arquitectura y su porqué | `docs/adr/` |
 | Roles, eventos, flujo de trabajo, ramas, commits, PRs y Definition of Done | `CONTRIBUTING.md` |
 | Integración continua y sus jobs | `.github/workflows/ci.yml`, `.github/workflows/pr-title.yml` |
 | Cambios por versión | `CHANGELOG.md` |

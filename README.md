@@ -42,7 +42,6 @@ cd frontend && pnpm install && pnpm dev:web
 - [Práctica 3-6: Gestión](docs/PDF%20Entregados/Pr%C3%A1ctica%203-6%20Gesti%C3%B3n.pdf):
   priorización, planificación del Sprint 1, métricas y proceso Scrum.
 - [Desarrollo local](docs/development.md): requisitos, arranque y comprobaciones.
-- [Decisiones de arquitectura](docs/adr/): por qué se eligió cada parte del stack.
 - [Grabaciones de los Scrum Meetings](docs/dailys/README.md): dónde están y cómo pedir acceso.
 
 ## Contribuir

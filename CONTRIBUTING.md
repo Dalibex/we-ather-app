@@ -13,7 +13,6 @@ Todo el proyecto se escribe en español: documentación, issues, pull requests y
 | [Diagrama Tropos](docs/ESQUEMA_TROPOS.png) | Red de dependencias entre actores y objetivos |
 | [Práctica 3-6: Gestión](docs/PDF%20Entregados/Pr%C3%A1ctica%203-6%20Gesti%C3%B3n.pdf) | Priorización del backlog, planificación del Sprint 1, métricas y proceso Scrum |
 | [Desarrollo local](docs/development.md) | Requisitos, arranque, comprobaciones y hook `pre-commit` |
-| [Decisiones de arquitectura](docs/adr/) | Por qué se eligió cada parte del stack |
 
 Si algo de esta guía choca con el ConOps en el alcance, manda el ConOps y se avisa al Product Owner.
 
