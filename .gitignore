@@ -19,9 +19,31 @@ desktop.ini
 *.tmp
 npm-debug.log*
 
-# Dependencias y builds (se amplía cuando se decida el stack)
+# Dependencias y builds
 node_modules/
 dist/
 build/
 coverage/
 target/
+*.tsbuildinfo
+
+# Clientes (frontend/): solo se versiona pnpm-lock.yaml; otro lockfile significa que se usó npm o yarn
+package-lock.json
+yarn.lock
+
+# Expo (frontend/apps/mobile). Las carpetas nativas las genera expo prebuild y no se versionan.
+.expo/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+frontend/apps/mobile/ios/
+frontend/apps/mobile/android/
+
+# Claves y certificados de firma de las apps
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision

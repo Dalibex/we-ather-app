@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+*.md
+
+# Salida de build o generada.
+**/dist/
+**/coverage/
+**/.expo/

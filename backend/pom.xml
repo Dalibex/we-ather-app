@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.1.1</version>
+		<relativePath/> <!-- se busca en el repositorio de Maven -->
+	</parent>
+
+	<groupId>es.uma</groupId>
+	<artifactId>weather</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>WEather</name>
+	<description>Servidor de WEather: rutas a pie por Málaga con la menor exposición al calor</description>
+
+	<properties>
+		<!-- Versión de Java con la que se compila y se ejecuta -->
+		<java.version>25</java.version>
+
+		<!-- Formato del código (job lint de la CI y hook de pre-commit) -->
+		<spotless.version>3.10.3</spotless.version>
+		<google-java-format.version>1.35.0</google-java-format.version>
+		<!-- Ejecuta git para instalar el hook de pre-commit -->
+		<exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
+
+		<!-- Pruebas. -DskipUTs=true salta las unitarias (*Test) y mantiene las de integración (*IT) -->
+		<skipUTs>false</skipUTs>
+		<jacoco.version>0.8.15</jacoco.version>
+		<!-- Cobertura mínima de líneas del backend, acordada por el equipo (CONTRIBUTING.md, Pruebas) -->
+		<jacoco.minimum.coverage>0.70</jacoco.minimum.coverage>
+		<spotbugs-plugin.version>4.10.4.1</spotbugs-plugin.version>
+	</properties>
+
+	<dependencies>
+		<!-- API REST -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<!-- Actuator: health check en /actuator/health -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- Seguridad de las peticiones -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<!-- Arranca docker-compose.yaml al ejecutar la aplicación en local -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-docker-compose</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- Base de datos: driver de PostgreSQL, JPA y migraciones versionadas con Flyway.
+			Spring Boot 4 necesita el starter: flyway-core por sí solo ya no activa la autoconfiguración. -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
+
+		<!-- Pruebas -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Testcontainers: las pruebas de integración (*IT) arrancan su propio PostGIS, con la misma
+			imagen que docker-compose.yaml. Las versiones las gestiona el parent de Spring Boot. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-postgresql</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<!-- Pruebas unitarias (*Test): sin Docker ni base de datos. Se ejecutan con ./mvnw test -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<skip>${skipUTs}</skip>
+				</configuration>
+			</plugin>
+
+			<!-- Pruebas de integración (*IT): contexto de Spring y PostGIS en Testcontainers (necesita
+				Docker). Se ejecutan con ./mvnw verify; se saltan con -DskipITs -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Análisis estático con SpotBugs. Falla en verify (job test de la CI).
+				Se salta con -Dspotbugs.skip=true -->
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs-plugin.version}</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Medium</threshold>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotbugs-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Formato con google-java-format (estilo AOSP, 4 espacios)
+				- El hook de pre-commit (.githooks/pre-commit) ejecuta spotless:apply sobre lo que se sube.
+				- check va en validate: cualquier build local y el job lint de la CI fallan si un archivo
+				  no está formateado. Se arregla con ./mvnw spotless:apply.
+				- Se salta en local con -Dspotless.check.skip=true -->
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless.version}</version>
+				<configuration>
+					<java>
+						<!-- Versión fija: el hook, el IDE y la CI tienen que formatear igual -->
+						<googleJavaFormat>
+							<version>${google-java-format.version}</version>
+							<style>AOSP</style>
+						</googleJavaFormat>
+						<removeUnusedImports/>
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotless-check</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Cobertura con JaCoCo. En verify se juntan los datos de las unitarias (jacoco.exec) y de
+				integración (jacoco-it.exec), se genera el informe en target/site/jacoco-merged y se
+				comprueba contra jacoco.minimum.coverage. Sin datos (por ejemplo, -DskipTests) se salta. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<configuration>
+					<excludes>
+						<exclude>**/*Application.class</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>agent-unit</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>agent-it</id>
+						<goals>
+							<goal>prepare-agent-integration</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>merge-coverage</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>merge</goal>
+						</goals>
+						<configuration>
+							<fileSets>
+								<fileSet>
+									<directory>${project.build.directory}</directory>
+									<includes>
+										<include>jacoco.exec</include>
+										<include>jacoco-it.exec</include>
+									</includes>
+								</fileSet>
+							</fileSets>
+							<destFile>${project.build.directory}/jacoco-merged.exec</destFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>report-coverage</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+							<outputDirectory>${project.reporting.outputDirectory}/jacoco-merged</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>check-coverage</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>${jacoco.minimum.coverage}</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<!-- Apunta git a los hooks versionados de .githooks en cualquier build local (./mvnw test,
+			verify, package...). No se activa en la CI (GitHub Actions define CI=true).
+			El código 128 significa que no es un repositorio git (por ejemplo, un zip): se ignora. -->
+		<profile>
+			<id>install-git-hooks</id>
+			<activation>
+				<property>
+					<name>!env.CI</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>${exec-maven-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>install-git-hooks</id>
+								<phase>initialize</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>git</executable>
+									<arguments>
+										<argument>config</argument>
+										<argument>core.hooksPath</argument>
+										<argument>.githooks</argument>
+									</arguments>
+									<successCodes>
+										<successCode>0</successCode>
+										<successCode>128</successCode>
+									</successCodes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

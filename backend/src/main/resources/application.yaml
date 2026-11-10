@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: weather
+  jpa:
+    open-in-view: false
+    # El SQL no se registra por defecto (también saldría en producción). Para verlo en local,
+    # pon SPRING_JPA_SHOW_SQL=true en la configuración de ejecución.
+    show-sql: false
+    hibernate:
+      # El esquema solo lo cambia Flyway (src/main/resources/db/migration); Hibernate solo valida.
+      ddl-auto: validate

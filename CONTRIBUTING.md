@@ -12,6 +12,8 @@ Todo el proyecto se escribe en español: documentación, issues, pull requests y
 | [ConOps](docs/PDF%20Entregados/DocumentoConOps.pdf) | Propósito, actores, objetivos (`OBJ-…`), mitigaciones (`MIT-…`) y el alcance MoSCoW (sección 5) |
 | [Diagrama Tropos](docs/ESQUEMA_TROPOS.png) | Red de dependencias entre actores y objetivos |
 | [Práctica 3-6: Gestión](docs/PDF%20Entregados/Pr%C3%A1ctica%203-6%20Gesti%C3%B3n.pdf) | Priorización del backlog, planificación del Sprint 1, métricas y proceso Scrum |
+| [Desarrollo local](docs/development.md) | Requisitos, arranque, comprobaciones y hook `pre-commit` |
+| [Decisiones de arquitectura](docs/adr/) | Por qué se eligió cada parte del stack |
 
 Si algo de esta guía choca con el ConOps en el alcance, manda el ConOps y se avisa al Product Owner.
 
@@ -96,7 +98,8 @@ GitHub no tiene estos estados: una issue está abierta hasta que se fusiona su P
 1. Coge una tarea del Sprint Backlog asignada a ti.
 2. Crea una **rama** desde el último `main`.
 3. Desarrolla con **TDD**: prueba que falla, código mínimo para que pase, refactorización.
-4. Haz **commits pequeños** con Conventional Commits.
+4. Haz **commits pequeños** con Conventional Commits. El hook `pre-commit` formatea el código antes
+   de cada commit (ver [Desarrollo local](docs/development.md#hook-pre-commit)).
 5. Abre una **pull request** a `main` que cierre la tarea (`Closes #N`). Su revisor la revisa en
    menos de 24 h.
 6. Cuando todas las tareas de una HU están integradas, su responsable ejecuta las pruebas de

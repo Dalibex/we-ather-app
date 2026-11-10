@@ -1,0 +1,22 @@
+# Lo propio del servidor; lo común (target/, .idea/, .vscode/, .env...) está en el .gitignore de la raíz.
+HELP.md
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Spring Tool Suite
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+!**/src/main/**/build/
+!**/src/test/**/build/

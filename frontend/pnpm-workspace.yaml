@@ -1,0 +1,3 @@
+# Workspace de los clientes: la app móvil (apps/mobile) y el panel de administración (apps/web).
+packages:
+  - apps/*

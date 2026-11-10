@@ -9,6 +9,14 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
 
+[*.java]
+# Igual que google-java-format AOSP (Spotless), para que el IDE escriba lo que acepta la CI
+indent_size = 4
+max_line_length = 100
+
+[pom.xml]
+indent_style = tab
+
 [*.md]
 # Dos espacios al final de línea son un salto de línea en Markdown
 trim_trailing_whitespace = false
