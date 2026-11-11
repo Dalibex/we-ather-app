@@ -23,3 +23,5 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   móvil (Expo) y panel de administración (Vite y React) en `frontend/`, y hook `pre-commit` que
   formatea el código. El arranque está en `docs/development.md`.
 - Dependabot vigila también las dependencias de Maven y de pnpm.
+- App móvil: la pantalla principal muestra el mapa base de Málaga con teselas de OpenStreetMap y su
+  atribución (T-05.2). La app móvil tiene ya pruebas con Jest.
