@@ -33,7 +33,7 @@ describe('MapaBase', () => {
   it('coloca la atribución por encima de los botones de navegación del sistema', async () => {
     await render(<MapaBase />);
 
-    const estilo = StyleSheet.flatten(screen.getByText('© OpenStreetMap contributors').props.style);
+    const estilo = StyleSheet.flatten(screen.getByTestId('atribucion').props.style);
     expect(estilo.bottom).toBe(48);
   });
 
