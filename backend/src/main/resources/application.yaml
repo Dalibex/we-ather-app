@@ -19,3 +19,22 @@ weather:
     # Carpeta donde se guardan las teselas descargadas y tiempo que se sirven sin volver a pedirlas.
     directorio-cache: ${WEATHER_TESELAS_CACHE:.cache/teselas}
     caducidad: 7d
+
+  proveedores:
+    # Peticiones máximas del servidor a cada proveedor externo por ventana de tiempo. Los datos se
+    # consultan cada hora y se cachean, así que en uso normal estos límites no se alcanzan: evitan
+    # que un error dispare peticiones contra el proveedor.
+    limites:
+      # Plan gratuito: 600 peticiones por minuto, 5.000 por hora y 10.000 al día
+      # (https://open-meteo.com/en/terms). 400 por hora no supera ninguno de los tres.
+      open-meteo:
+        max-peticiones: 400
+        ventana: 1h
+      # AEMET OpenData no publica un límite fijo; valor prudente, pendiente de ajustar.
+      aemet:
+        max-peticiones: 40
+        ventana: 1h
+      # El portal de datos abiertos del Ayuntamiento no publica un límite; valor prudente.
+      ayuntamiento-malaga:
+        max-peticiones: 40
+        ventana: 1h
