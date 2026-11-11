@@ -22,9 +22,10 @@ describe('MapaBase', () => {
     expect(teselas.shouldReplaceMapContent).toBe(true);
   });
 
-  it('muestra la atribución de OpenStreetMap', async () => {
+  it('muestra la atribución de los proveedores de datos', async () => {
     await render(<MapaBase />);
 
+    expect(screen.getByTestId('atribucion')).toBeOnTheScreen();
     expect(screen.getByText('© OpenStreetMap contributors')).toBeOnTheScreen();
   });
 
