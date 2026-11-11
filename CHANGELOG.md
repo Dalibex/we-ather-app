@@ -31,3 +31,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   OpenStreetMap bloquea las peticiones directas desde Android (T-05.2).
 - App móvil: la atribución de OpenStreetMap y el logo del mapa se colocan por encima de los botones
   de navegación del sistema, para que se lean y se puedan pulsar (T-05.2).
+- App móvil: el mapa muestra la atribución de todos los proveedores de datos (OpenStreetMap,
+  Open-Meteo, AEMET y Ayuntamiento de Málaga), cada una enlazada a su licencia (T-20.2).
+- Servidor: límite de peticiones por proveedor de datos externo, configurado en
+  `weather.proveedores.limites` de `application.yaml` (T-20.2).
