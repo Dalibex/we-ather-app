@@ -17,8 +17,8 @@ implementa ninguna historia de usuario. No hay versión publicada.
 
 | Parte | Carpeta | Estado |
 | --- | --- | --- |
-| Servidor | `backend/` | Esqueleto: Spring Boot con PostgreSQL y PostGIS, solo el health check |
-| App móvil | `frontend/apps/mobile/` | Expo con el mapa base de Málaga (teselas de OpenStreetMap) como pantalla principal |
+| Servidor | `backend/` | Spring Boot con PostgreSQL y PostGIS: health check y teselas del mapa base de Málaga, con caché |
+| App móvil | `frontend/apps/mobile/` | Expo con el mapa base de Málaga como pantalla principal; las teselas de OpenStreetMap las pide al servidor |
 | Panel de administración | `frontend/apps/web/` | Esqueleto: Vite y React con una pantalla inicial |
 
 ## Puesta en marcha
