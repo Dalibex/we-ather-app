@@ -1,5 +1,6 @@
 import { Linking, StyleSheet, Text, View } from 'react-native';
 import MapView, { UrlTile, type Region } from 'react-native-maps';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { URL_API } from '../config';
 
@@ -22,12 +23,22 @@ const LICENCIA_OSM = 'https://www.openstreetmap.org/copyright';
  * Mapa base de Málaga con teselas de OpenStreetMap, que se desplaza y amplía con gestos.
  *
  * `mapType="none"` (Android) y `shouldReplaceMapContent` (iOS) ocultan el mapa del sistema para
- * que solo se vean las teselas de OSM. La atribución es obligatoria por su licencia.
+ * que solo se vean las teselas de OSM. La atribución es obligatoria por su licencia: se coloca,
+ * igual que el logo del mapa del sistema, por encima de los botones de navegación del móvil, para
+ * que se lea y se pueda pulsar.
  */
 export function MapaBase() {
+  const margenes = useSafeAreaInsets();
+
   return (
     <View style={styles.contenedor}>
-      <MapView testID="mapa-base" style={styles.mapa} initialRegion={REGION_MALAGA} mapType="none">
+      <MapView
+        testID="mapa-base"
+        style={styles.mapa}
+        initialRegion={REGION_MALAGA}
+        mapType="none"
+        mapPadding={{ top: margenes.top, right: 0, bottom: margenes.bottom, left: 0 }}
+      >
         <UrlTile
           testID="teselas-osm"
           urlTemplate={TESELAS_OSM}
@@ -36,7 +47,7 @@ export function MapaBase() {
         />
       </MapView>
       <Text
-        style={styles.atribucion}
+        style={[styles.atribucion, { bottom: margenes.bottom }]}
         accessibilityRole="link"
         onPress={() => void Linking.openURL(LICENCIA_OSM)}
       >
@@ -56,11 +67,10 @@ const styles = StyleSheet.create({
   atribucion: {
     position: 'absolute',
     right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     color: '#0F172A',
-    fontSize: 12,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    fontSize: 13,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
   },
 });

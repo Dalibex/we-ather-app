@@ -29,3 +29,5 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   cubren Málaga. Las descarga identificándose, las guarda en disco y, si OpenStreetMap falla, sirve
   la última copia válida. La app móvil pide las teselas al servidor (`EXPO_PUBLIC_API_URL`), porque
   OpenStreetMap bloquea las peticiones directas desde Android (T-05.2).
+- App móvil: la atribución de OpenStreetMap y el logo del mapa se colocan por encima de los botones
+  de navegación del sistema, para que se lean y se puedan pulsar (T-05.2).
