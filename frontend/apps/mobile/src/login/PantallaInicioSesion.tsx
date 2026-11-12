@@ -1,5 +1,14 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { PatronBiznagas } from '../components/PatronBiznagas';
 import { CabeceraLogo } from '../components/CabeceraLogo';
 import { estilosFormulario as estilos } from '../theme/formulario';
@@ -16,12 +25,60 @@ interface Props {
 }
 
 /** Pantalla de inicio de sesión. */
-export function PantallaInicioSesion({ onEnviar, onVolver, onIrRegistro }: Props) {
+export function PantallaInicioSesion({
+  onEnviar,
+  onVolver,
+  onIrRegistro,
+}: Props) {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
+  const [tecladoVisible, setTecladoVisible] = useState(false);
+
+  const desplazamiento = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const mostrar = Keyboard.addListener('keyboardDidShow', () => {
+      setTecladoVisible(true);
+    });
+
+    const ocultar = Keyboard.addListener('keyboardDidHide', () => {
+      setTecladoVisible(false);
+    });
+
+    return () => {
+      mostrar.remove();
+      ocultar.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    Animated.timing(desplazamiento, {
+      toValue: tecladoVisible ? 1 : 0,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [tecladoVisible, desplazamiento]);
+
+  const paddingTop = desplazamiento.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 8],
+  });
+
+  const posicion = desplazamiento.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -100],
+  });
 
   return (
-    <View style={estilos.container}>
+    <Animated.View
+      style={[
+        estilos.container,
+        {
+          paddingTop,
+          transform: [{ translateY: posicion }],
+        },
+      ]}
+    >
       <PatronBiznagas />
 
       <Pressable
@@ -69,14 +126,18 @@ export function PantallaInicioSesion({ onEnviar, onVolver, onIrRegistro }: Props
         />
 
         <View style={estilosLocal.contenedorRegistro}>
-          <Text style={estilosLocal.textoRegistro}>¿No tienes cuenta? </Text>
+          <Text style={estilosLocal.textoRegistro}>
+            ¿No tienes cuenta?
+          </Text>
           <Pressable
             accessibilityRole="link"
             accessibilityLabel="Regístrate"
             onPress={onIrRegistro}
             hitSlop={8}
           >
-            <Text style={estilosLocal.registroDestacado}>Regístrate</Text>
+            <Text style={estilosLocal.registroDestacado}>
+              Regístrate
+            </Text>
           </Pressable>
         </View>
 
@@ -90,7 +151,7 @@ export function PantallaInicioSesion({ onEnviar, onVolver, onIrRegistro }: Props
       </View>
 
       <Text style={estilos.pie}>PARA AGUANTAR LA CALOR</Text>
-    </View>
+    </Animated.View>
   );
 }
 

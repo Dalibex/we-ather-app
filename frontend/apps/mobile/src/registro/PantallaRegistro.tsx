@@ -1,5 +1,8 @@
-import { useState } from 'react';
+
+import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  Keyboard,
   Linking,
   Pressable,
   StyleSheet,
@@ -23,11 +26,8 @@ export interface DatosRegistro {
 }
 
 interface Props {
-  /** Recibe los datos al pulsar «Crear cuenta». Validarlos y enviarlos no es cosa de esta pantalla. */
   onEnviar: (datos: DatosRegistro) => void;
-  /** Vuelve a la pantalla anterior. */
   onVolver: () => void;
-
   onIniciarSesion: () => void;
 }
 
@@ -36,9 +36,53 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [privacidadAceptada, setPrivacidadAceptada] = useState(false);
+  const [tecladoVisible, setTecladoVisible] = useState(false);
+
+  const desplazamiento = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const mostrar = Keyboard.addListener('keyboardDidShow', () => {
+      setTecladoVisible(true);
+    });
+
+    const ocultar = Keyboard.addListener('keyboardDidHide', () => {
+      setTecladoVisible(false);
+    });
+
+    return () => {
+      mostrar.remove();
+      ocultar.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    Animated.timing(desplazamiento, {
+      toValue: tecladoVisible ? 1 : 0,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [tecladoVisible, desplazamiento]);
+
+  const paddingTop = desplazamiento.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 8],
+  });
+
+  const posicion = desplazamiento.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -100],
+  });
 
   return (
-    <View style={estilos.container}>
+    <Animated.View
+      style={[
+        estilos.container,
+        {
+          paddingTop,
+          transform: [{ translateY: posicion }],
+        },
+      ]}
+    >
       <PatronBiznagas />
 
       <Pressable
@@ -126,7 +170,7 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
       </View>
 
       <Text style={estilos.pie}>PARA AGUANTAR LA CALOR</Text>
-    </View>
+    </Animated.View>
   );
 }
 
