@@ -10,7 +10,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** El health check es público; el resto de rutas pide autenticación. */
+/** El health check y las teselas del mapa son públicos; el resto de rutas pide autenticación. */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(es.uma.weather.TestcontainersConfiguration.class)
@@ -21,6 +21,12 @@ class SecurityConfigIT {
     @Test
     void elHealthCheckEsPublico() throws Exception {
         mvc.perform(get("/actuator/health")).andExpect(status().isOk());
+    }
+
+    // Una tesela de fuera de Málaga: se rechaza con 404 sin llegar a pedirla a OpenStreetMap.
+    @Test
+    void lasTeselasDelMapaSonPublicas() throws Exception {
+        mvc.perform(get("/api/v1/teselas/13/4011/3088.png")).andExpect(status().isNotFound());
     }
 
     @Test
