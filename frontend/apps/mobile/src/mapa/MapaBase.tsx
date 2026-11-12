@@ -1,6 +1,8 @@
 import { Linking, StyleSheet, Text, View } from 'react-native';
 import MapView, { UrlTile, type Region } from 'react-native-maps';
 
+import { URL_API } from '../config';
+
 /** Vista inicial: el centro de Málaga, con unos 5 km de alto. */
 const REGION_MALAGA: Region = {
   latitude: 36.7213,
@@ -9,7 +11,9 @@ const REGION_MALAGA: Region = {
   longitudeDelta: 0.05,
 };
 
-const TESELAS_OSM = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+// Las teselas son de OpenStreetMap, pero las sirve el servidor de WEather: OSM bloquea las
+// peticiones directas de la app, que no puede identificarse como exige su política de uso.
+const TESELAS_OSM = `${URL_API}/api/v1/teselas/{z}/{x}/{y}.png`;
 /** Último nivel de zoom que sirve tile.openstreetmap.org. */
 const ZOOM_MAXIMO_OSM = 19;
 const LICENCIA_OSM = 'https://www.openstreetmap.org/copyright';
