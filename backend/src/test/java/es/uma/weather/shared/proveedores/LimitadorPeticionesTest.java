@@ -49,6 +49,16 @@ class LimitadorPeticionesTest {
     }
 
     @Test
+    void sigueRechazandoHastaQueTerminaLaVentana() {
+        limitador.permitir("open-meteo");
+        limitador.permitir("open-meteo");
+
+        reloj.avanzar(Duration.ofMinutes(59));
+
+        assertThat(limitador.permitir("open-meteo")).isFalse();
+    }
+
+    @Test
     void cuentaCadaProveedorPorSeparado() {
         limitador.permitir("aemet");
 
