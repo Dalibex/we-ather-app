@@ -21,9 +21,9 @@ weather:
     caducidad: 7d
 
   proveedores:
-    # Peticiones máximas del servidor a cada proveedor externo por ventana de tiempo. Los datos se
-    # consultan cada hora y se cachean, así que en uso normal estos límites no se alcanzan: evitan
-    # que un error dispare peticiones contra el proveedor.
+    # Peticiones máximas del servidor a cada proveedor externo por ventana de tiempo. Evitan que un
+    # error dispare peticiones contra el proveedor. La caché y el refresco de los datos llegan con
+    # la T-20.1.
     limites:
       # Plan gratuito: 600 peticiones por minuto, 5.000 por hora y 10.000 al día
       # (https://open-meteo.com/en/terms). 400 por hora no supera ninguno de los tres.
