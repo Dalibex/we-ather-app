@@ -51,6 +51,41 @@ Comprobaciones:
 Las pruebas unitarias se llaman `*Test` y las de integración `*IT`. Las de integración arrancan su
 propia base de datos con Testcontainers, así que Docker tiene que estar en marcha.
 
+## Migraciones de la base de datos
+
+El esquema solo lo cambia Flyway, con los archivos de `backend/src/main/resources/db/migration/`.
+Hibernate no crea tablas: solo comprueba al arrancar que las entidades coinciden con ellas
+(`ddl-auto: validate`), así que una entidad sin su migración hace fallar el arranque y las pruebas.
+Cada historia de usuario crea las tablas que necesita con su propia migración, en su pull request.
+
+- **Nombre:** `V<n>__<área>_<acción>.sql`, en minúsculas y con guiones bajos, por ejemplo
+  `V2__usuarios_crear_tabla.sql`. Flyway las aplica en orden de versión.
+- **Contenido:** un cambio por migración, que empieza con un comentario que dice qué crea y para
+  qué HU.
+- **Una migración que ya está en `main` no se edita nunca.** Flyway guarda una suma de control de
+  cada migración aplicada y no arranca si el archivo cambia. Cualquier ajuste va en una migración
+  nueva.
+- **Antes de abrir la pull request,** actualiza tu rama con `main`. Si otra persona ya ha usado tu
+  número de versión, renombra la tuya al siguiente libre.
+- **Pruebas:** `DatabaseMigrationIT` aplica todas las migraciones sobre un PostGIS vacío. Si tu
+  migración tiene reglas (claves únicas, valores obligatorios), pruébalas en el `*IT` de su módulo.
+
+Si Flyway falla al arrancar en local, suele ser por uno de estos dos motivos:
+
+- `Migration checksum mismatch`: has cambiado una migración que ya estaba aplicada en tu base
+  local.
+- `Detected resolved migration not applied to database`: ha llegado de `main` una migración con un
+  número menor que otra que ya aplicaste desde tu rama.
+
+En los dos casos, si tu base local no tiene nada que quieras conservar, bórrala y deja que se vuelva
+a crear:
+
+```bash
+cd backend
+docker compose down -v   # borra el contenedor y el volumen con los datos
+./mvnw spring-boot:run   # lo crea de nuevo y aplica todas las migraciones
+```
+
 ## Clientes
 
 ```bash
