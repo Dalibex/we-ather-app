@@ -11,12 +11,12 @@ describe('MapaBase', () => {
     expect(longitude).toBeCloseTo(-4.42, 1);
   });
 
-  it('pinta las teselas de OpenStreetMap en lugar del mapa del sistema', async () => {
+  it('pide al servidor de WEather las teselas de OpenStreetMap, en lugar del mapa del sistema', async () => {
     await render(<MapaBase />);
 
     expect(screen.getByTestId('mapa-base').props.mapType).toBe('none');
     const teselas = screen.getByTestId('teselas-osm').props;
-    expect(teselas.urlTemplate).toBe('https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+    expect(teselas.urlTemplate).toBe('http://localhost:8080/api/v1/teselas/{z}/{x}/{y}.png');
     expect(teselas.maximumZ).toBe(19);
     expect(teselas.shouldReplaceMapContent).toBe(true);
   });
