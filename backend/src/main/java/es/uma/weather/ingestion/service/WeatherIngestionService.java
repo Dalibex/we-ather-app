@@ -89,7 +89,8 @@ public class WeatherIngestionService {
         JsonNode hourly = root.path("hourly");
         double radiation = hourly.path("shortwave_radiation").path(hourlyIndex).asDouble(0.0);
         double uv = hourly.path("uv_index").path(hourlyIndex).asDouble(0.0);
-        var observedAt = localTime.atOffset(ZoneOffset.ofTotalSeconds(utcOffset)).toInstant();
+        // OffsetDateTime, not Instant: the PostgreSQL driver cannot bind an Instant.
+        var observedAt = localTime.atOffset(ZoneOffset.ofTotalSeconds(utcOffset));
         double score = heatScoreCalculator.calculate(temperature, humidity, wind, radiation);
         String level = heatScoreCalculator.level(score);
 
