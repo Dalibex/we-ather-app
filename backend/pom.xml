@@ -41,6 +41,13 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
+		<!-- Cliente HTTP (RestClient.Builder) para Open-Meteo y Overpass.
+			En Spring Boot 4 su autoconfiguración ya no viene con el starter webmvc. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-restclient</artifactId>
+		</dependency>
+
 		<!-- Actuator: health check en /actuator/health -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -101,9 +108,10 @@
 			<artifactId>spring-boot-starter-actuator-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Incluye spring-security-test y la autoconfiguración de seguridad de @WebMvcTest -->
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -166,6 +174,8 @@
 				<configuration>
 					<effort>Max</effort>
 					<threshold>Medium</threshold>
+					<!-- Falsos positivos excluidos, cada uno con su motivo -->
+					<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
 				</configuration>
 				<executions>
 					<execution>
