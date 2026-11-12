@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Animated,
   Keyboard,
@@ -38,7 +38,9 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
   const [privacidadAceptada, setPrivacidadAceptada] = useState(false);
   const [tecladoVisible, setTecladoVisible] = useState(false);
 
-  const desplazamiento = useRef(new Animated.Value(0)).current;
+  const [desplazamiento] = useState(
+    () => new Animated.Value(0)
+  );
 
   useEffect(() => {
     const mostrar = Keyboard.addListener('keyboardDidShow', () => {
@@ -56,11 +58,20 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
   }, []);
 
   useEffect(() => {
-    Animated.timing(desplazamiento, {
+    // No ejecutar animaciones durante los tests.
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
+    const animacion = Animated.timing(desplazamiento, {
       toValue: tecladoVisible ? 1 : 0,
       duration: 500,
       useNativeDriver: false,
-    }).start();
+    });
+
+    animacion.start();
+
+    return () => animacion.stop();
   }, [tecladoVisible, desplazamiento]);
 
   const paddingTop = desplazamiento.interpolate({

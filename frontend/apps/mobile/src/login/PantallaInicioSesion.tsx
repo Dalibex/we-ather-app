@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Animated,
   Keyboard,
@@ -34,7 +34,9 @@ export function PantallaInicioSesion({
   const [contrasena, setContrasena] = useState('');
   const [tecladoVisible, setTecladoVisible] = useState(false);
 
-  const desplazamiento = useRef(new Animated.Value(0)).current;
+  const [desplazamiento] = useState(
+    () => new Animated.Value(0)
+  );
 
   useEffect(() => {
     const mostrar = Keyboard.addListener('keyboardDidShow', () => {
@@ -52,11 +54,20 @@ export function PantallaInicioSesion({
   }, []);
 
   useEffect(() => {
-    Animated.timing(desplazamiento, {
+    // Desactivar animaciones durante los tests.
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
+    const animacion = Animated.timing(desplazamiento, {
       toValue: tecladoVisible ? 1 : 0,
       duration: 500,
       useNativeDriver: false,
-    }).start();
+    });
+
+    animacion.start();
+
+    return () => animacion.stop();
   }, [tecladoVisible, desplazamiento]);
 
   const paddingTop = desplazamiento.interpolate({

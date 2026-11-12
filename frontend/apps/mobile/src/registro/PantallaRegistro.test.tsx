@@ -5,6 +5,7 @@ import { PantallaRegistro } from './PantallaRegistro';
 
 const CASILLA = 'Tengo 14 años o más y acepto la política de privacidad';
 
+
 function renderPantalla(
   props: Partial<Parameters<typeof PantallaRegistro>[0]> = {},
 ) {
