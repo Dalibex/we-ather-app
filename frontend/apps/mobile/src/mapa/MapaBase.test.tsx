@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { MapaBase } from './MapaBase';
 
@@ -25,5 +26,19 @@ describe('MapaBase', () => {
     await render(<MapaBase />);
 
     expect(screen.getByText('© OpenStreetMap contributors')).toBeOnTheScreen();
+  });
+
+  // El mock de react-native-safe-area-context simula 48 px de botones de navegación abajo.
+  it('coloca la atribución por encima de los botones de navegación del sistema', async () => {
+    await render(<MapaBase />);
+
+    const estilo = StyleSheet.flatten(screen.getByText('© OpenStreetMap contributors').props.style);
+    expect(estilo.bottom).toBe(48);
+  });
+
+  it('deja el logo del mapa del sistema por encima de los botones de navegación', async () => {
+    await render(<MapaBase />);
+
+    expect(screen.getByTestId('mapa-base').props.mapPadding.bottom).toBe(48);
   });
 });
