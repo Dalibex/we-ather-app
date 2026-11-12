@@ -17,10 +17,12 @@ interface Props {
   onEnviar: (datos: DatosRegistro) => void;
   /** Vuelve a la pantalla anterior. */
   onVolver: () => void;
+
+  onIniciarSesion: () => void;
 }
 
 /** Pantalla de registro (HU-01): correo, contraseña y aceptación de la política de privacidad. */
-export function PantallaRegistro({ onEnviar, onVolver }: Props) {
+export function PantallaRegistro({ onEnviar, onVolver}: Props) {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [privacidadAceptada, setPrivacidadAceptada] = useState(false);
