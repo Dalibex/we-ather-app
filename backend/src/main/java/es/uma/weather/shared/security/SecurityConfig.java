@@ -17,6 +17,9 @@ class SecurityConfig {
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
+                // Manual ingestion is triggered by scripts or admins, not by browser forms, so
+                // CSRF protection does not apply there. The rest of the API keeps the default.
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/ingestion/**"))
                 .httpBasic(Customizer.withDefaults());
         return http.build();
     }

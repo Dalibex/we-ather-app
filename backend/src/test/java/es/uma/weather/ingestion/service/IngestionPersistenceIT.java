@@ -14,18 +14,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.web.client.RestClient;
 
 /** Comprueba ambas ingestas contra PostgreSQL/PostGIS real y HTTP simulado. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@Import({TestcontainersConfiguration.class, IngestionPersistenceIT.MockHttpConfiguration.class})
+@Import(TestcontainersConfiguration.class)
 class IngestionPersistenceIT {
 
     private static final MockWebServer MOCK_WEB_SERVER = startMockWebServer();
@@ -73,7 +69,8 @@ class IngestionPersistenceIT {
                 new Dispatcher() {
                     @Override
                     public MockResponse dispatch(RecordedRequest request) {
-                        String path = request.getPath();
+                        // getPath() includes the query string; compare only the path.
+                        String path = request.getRequestUrl().encodedPath();
 
                         if ("/v1/forecast".equals(path)) {
                             return new MockResponse()
@@ -157,16 +154,6 @@ class IngestionPersistenceIT {
         assertThat(((Number) observation.get("longitude")).doubleValue()).isEqualTo(-4.42);
         assertThat(((Number) observation.get("latitude")).doubleValue()).isEqualTo(36.72);
         assertThat(((Number) observation.get("heat_score")).doubleValue()).isBetween(0.0, 100.0);
-    }
-
-    @TestConfiguration(proxyBeanMethods = false)
-    static class MockHttpConfiguration {
-
-        @Bean
-        @Primary
-        RestClient.Builder testRestClientBuilder() {
-            return RestClient.builder();
-        }
     }
 
     @Test
