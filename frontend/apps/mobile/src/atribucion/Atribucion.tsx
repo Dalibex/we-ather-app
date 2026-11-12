@@ -39,10 +39,11 @@ const styles = StyleSheet.create({
     columnGap: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     paddingHorizontal: 8,
-    paddingVertical: 2,
   },
   proveedor: {
     color: '#0F172A',
     fontSize: 13,
+    // Zona táctil más alta para pulsar el enlace con el dedo.
+    paddingVertical: 8,
   },
 });
