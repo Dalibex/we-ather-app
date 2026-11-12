@@ -96,7 +96,7 @@ Comprobaciones, las mismas que el job `frontend` de la CI:
 | `pnpm format:check` | Comprueba el formato con Prettier (`pnpm format` lo corrige) |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | TypeScript en las dos apps |
-| `pnpm test` | Pruebas de las apps que las tengan |
+| `pnpm test` | Pruebas de las apps que las tengan (hoy, la app móvil con Jest) |
 | `pnpm build` | Compila las dos apps |
 
 ## Hook pre-commit
