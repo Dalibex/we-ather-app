@@ -107,6 +107,13 @@ GitHub no tiene estos estados: una issue está abierta hasta que se fusiona su P
 
 Las ramas son cortas: se integran como mínimo cada dos días.
 
+**Tareas que dependen de otra sin fusionar.** Si tu tarea necesita código de otra cuya PR sigue
+abierta, saca tu rama de la suya y abre la PR contra ella. La CI solo se ejecuta en PRs contra
+`main`, así que ejecuta las comprobaciones en local antes de pedir revisión. Cuando se apruebe, se
+fusiona en la rama de la tarea base, y la PR de esa tarea lleva las dos a `main` con la CI en verde
+y un `Closes` por cada issue. Si la tarea base se fusiona antes, rebasa tu rama sobre `main` con
+`git rebase --onto origin/main <último commit de la tarea base>`.
+
 ## Ramas
 
 `tipo/<tarea>-descripcion-corta`, en minúsculas y con guiones:

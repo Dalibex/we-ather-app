@@ -20,3 +20,6 @@ HELP.md
 /.nb-gradle/
 !**/src/main/**/build/
 !**/src/test/**/build/
+
+# Caché local de teselas del mapa base
+.cache/

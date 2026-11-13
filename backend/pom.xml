@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.1</version>
+		<version>4.1.2</version>
 		<relativePath/> <!-- se busca en el repositorio de Maven -->
 	</parent>
 
@@ -21,17 +21,17 @@
 		<java.version>25</java.version>
 
 		<!-- Formato del código (job lint de la CI y hook de pre-commit) -->
-		<spotless.version>3.10.3</spotless.version>
+		<spotless.version>3.11.0</spotless.version>
 		<google-java-format.version>1.35.0</google-java-format.version>
 		<!-- Ejecuta git para instalar el hook de pre-commit -->
-		<exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
+		<exec-maven-plugin.version>3.6.4</exec-maven-plugin.version>
 
 		<!-- Pruebas. -DskipUTs=true salta las unitarias (*Test) y mantiene las de integración (*IT) -->
 		<skipUTs>false</skipUTs>
-		<jacoco.version>0.8.15</jacoco.version>
+		<jacoco.version>0.8.16</jacoco.version>
 		<!-- Cobertura mínima de líneas del backend, acordada por el equipo (CONTRIBUTING.md, Pruebas) -->
 		<jacoco.minimum.coverage>0.70</jacoco.minimum.coverage>
-		<spotbugs-plugin.version>4.10.4.1</spotbugs-plugin.version>
+		<spotbugs-plugin.version>4.10.5.0</spotbugs-plugin.version>
 	</properties>
 
 	<dependencies>
