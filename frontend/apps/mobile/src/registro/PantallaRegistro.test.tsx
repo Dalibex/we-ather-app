@@ -6,7 +6,14 @@ import { PantallaRegistro } from './PantallaRegistro';
 const CASILLA = 'Tengo 14 años o más y acepto la política de privacidad';
 
 function renderPantalla(props: Partial<Parameters<typeof PantallaRegistro>[0]> = {}) {
-  return render(<PantallaRegistro onEnviar={jest.fn()} onVolver={jest.fn()} {...props} />);
+  return render(
+    <PantallaRegistro
+      onEnviar={jest.fn()}
+      onVolver={jest.fn()}
+      onIniciarSesion={jest.fn()}
+      {...props}
+    />,
+  );
 }
 
 describe('PantallaRegistro', () => {
