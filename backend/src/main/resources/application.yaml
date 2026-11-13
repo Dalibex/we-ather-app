@@ -9,3 +9,13 @@ spring:
     hibernate:
       # El esquema solo lo cambia Flyway (src/main/resources/db/migration); Hibernate solo valida.
       ddl-auto: validate
+
+weather:
+  teselas:
+    # Proveedor de las teselas del mapa base. OpenStreetMap exige un User-Agent que identifique a
+    # la aplicación (https://operations.osmfoundation.org/policies/tiles/).
+    url: https://tile.openstreetmap.org/{z}/{x}/{y}.png
+    user-agent: WEather/0.0.1 (+https://github.com/Dalibex/we-ather-app)
+    # Carpeta donde se guardan las teselas descargadas y tiempo que se sirven sin volver a pedirlas.
+    directorio-cache: ${WEATHER_TESELAS_CACHE:.cache/teselas}
+    caducidad: 7d

@@ -32,7 +32,13 @@ cp .env.example .env   # y cambia la contraseña; .env nunca se versiona
 
 Al arrancar, Spring Boot levanta el contenedor de PostgreSQL definido en `docker-compose.yaml` con
 los valores de `.env` y aplica las migraciones de `src/main/resources/db/migration`. El estado del
-servidor está en <http://localhost:8080/actuator/health>; el resto de rutas pide autenticación.
+servidor está en <http://localhost:8080/actuator/health>. Son públicos el health check y las teselas
+del mapa (`/api/v1/teselas/{z}/{x}/{y}.png`); el resto de rutas pide autenticación.
+
+Las teselas se descargan de OpenStreetMap la primera vez y se guardan en `backend/.cache/teselas`
+(no se versiona; se cambia con la variable `WEATHER_TESELAS_CACHE`). Solo se sirven las que cubren
+Málaga. El proveedor, el `User-Agent` con el que se identifica el servidor y la caducidad están en
+`weather.teselas` de `application.yaml`.
 
 Comprobaciones:
 
@@ -89,6 +95,18 @@ pnpm dev:web      # panel de administración en http://localhost:5173
 pnpm dev:mobile   # app móvil con Expo (Expo Go o un emulador)
 ```
 
+La app móvil pide las teselas del mapa al servidor, así que este tiene que estar arrancado. Su
+dirección se configura en `frontend/apps/mobile/.env` (copia `.env.example`), porque en un móvil
+`localhost` es el propio móvil:
+
+| Dónde se ejecuta la app | `EXPO_PUBLIC_API_URL` |
+| --- | --- |
+| Móvil real con Expo Go | La IP del ordenador en la wifi, por ejemplo `http://192.168.1.20:8080` |
+| Emulador de Android | `http://10.0.2.2:8080` |
+| Simulador de iOS | `http://localhost:8080` (el valor por defecto) |
+
+Tras cambiar `.env`, reinicia Expo.
+
 Comprobaciones, las mismas que el job `frontend` de la CI:
 
 | Comando | Qué hace |
@@ -96,7 +114,7 @@ Comprobaciones, las mismas que el job `frontend` de la CI:
 | `pnpm format:check` | Comprueba el formato con Prettier (`pnpm format` lo corrige) |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | TypeScript en las dos apps |
-| `pnpm test` | Pruebas de las apps que las tengan |
+| `pnpm test` | Pruebas de las apps que las tengan (hoy, la app móvil con Jest) |
 | `pnpm build` | Compila las dos apps |
 
 ## Hook pre-commit
