@@ -1,7 +1,8 @@
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import MapView, { UrlTile, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Atribucion } from '../atribucion/Atribucion';
 import { URL_API } from '../config';
 
 /** Vista inicial: el centro de Málaga, con unos 5 km de alto. */
@@ -17,15 +18,14 @@ const REGION_MALAGA: Region = {
 const TESELAS_OSM = `${URL_API}/api/v1/teselas/{z}/{x}/{y}.png`;
 /** Último nivel de zoom que sirve tile.openstreetmap.org. */
 const ZOOM_MAXIMO_OSM = 19;
-const LICENCIA_OSM = 'https://www.openstreetmap.org/copyright';
 
 /**
  * Mapa base de Málaga con teselas de OpenStreetMap, que se desplaza y amplía con gestos.
  *
  * `mapType="none"` (Android) y `shouldReplaceMapContent` (iOS) ocultan el mapa del sistema para
- * que solo se vean las teselas de OSM. La atribución es obligatoria por su licencia: se coloca,
- * igual que el logo del mapa del sistema, por encima de los botones de navegación del móvil, para
- * que se lea y se pueda pulsar.
+ * que solo se vean las teselas de OSM. Encima va la atribución de los proveedores de datos, que se
+ * coloca, igual que el logo del mapa del sistema, por encima de los botones de navegación del móvil
+ * para que se lea y se pueda pulsar.
  */
 export function MapaBase() {
   const margenes = useSafeAreaInsets();
@@ -46,13 +46,7 @@ export function MapaBase() {
           shouldReplaceMapContent
         />
       </MapView>
-      <Text
-        style={[styles.atribucion, { bottom: margenes.bottom }]}
-        accessibilityRole="link"
-        onPress={() => void Linking.openURL(LICENCIA_OSM)}
-      >
-        © OpenStreetMap contributors
-      </Text>
+      <Atribucion margenInferior={margenes.bottom} />
     </View>
   );
 }
@@ -63,14 +57,5 @@ const styles = StyleSheet.create({
   },
   mapa: {
     flex: 1,
-  },
-  atribucion: {
-    position: 'absolute',
-    right: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    color: '#0F172A',
-    fontSize: 13,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
   },
 });

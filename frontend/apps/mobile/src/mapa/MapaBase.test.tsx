@@ -22,9 +22,10 @@ describe('MapaBase', () => {
     expect(teselas.shouldReplaceMapContent).toBe(true);
   });
 
-  it('muestra la atribución de OpenStreetMap', async () => {
+  it('muestra la atribución de los proveedores de datos', async () => {
     await render(<MapaBase />);
 
+    expect(screen.getByTestId('atribucion')).toBeOnTheScreen();
     expect(screen.getByText('© OpenStreetMap contributors')).toBeOnTheScreen();
   });
 
@@ -32,7 +33,7 @@ describe('MapaBase', () => {
   it('coloca la atribución por encima de los botones de navegación del sistema', async () => {
     await render(<MapaBase />);
 
-    const estilo = StyleSheet.flatten(screen.getByText('© OpenStreetMap contributors').props.style);
+    const estilo = StyleSheet.flatten(screen.getByTestId('atribucion').props.style);
     expect(estilo.bottom).toBe(48);
   });
 
