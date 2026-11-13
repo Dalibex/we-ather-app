@@ -4,6 +4,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Decide si se puede hacer una petición más a un proveedor externo sin superar su límite.
@@ -13,6 +15,8 @@ import java.util.Map;
  * false}, no llama y usa el último dato válido que tenga guardado.
  */
 public class LimitadorPeticiones {
+
+    private static final Logger LOG = LoggerFactory.getLogger(LimitadorPeticiones.class);
 
     private final Map<String, Limite> limites;
     private final Clock reloj;
@@ -43,6 +47,12 @@ public class LimitadorPeticiones {
             ventana = new Ventana(ahora, 0);
         }
         if (ventana.peticiones() >= limite.maxPeticiones()) {
+            // Sin este aviso, un límite que se queda corto pasaría desapercibido: quien llama usa
+            // el último dato válido y la app sigue funcionando con datos cada vez más antiguos.
+            LOG.warn(
+                    "Petición a {} rechazada: alcanzado su límite de {} peticiones",
+                    proveedor,
+                    limite.maxPeticiones());
             return false;
         }
         ventanas.put(proveedor, new Ventana(ventana.inicio(), ventana.peticiones() + 1));
