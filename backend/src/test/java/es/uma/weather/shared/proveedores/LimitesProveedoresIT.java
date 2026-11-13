@@ -19,7 +19,7 @@ class LimitesProveedoresIT {
     void cadaProveedorTieneSuLimite() {
         assertThat(properties.limites())
                 .containsOnlyKeys("open-meteo", "aemet", "ayuntamiento-malaga")
-                .containsEntry("open-meteo", new Limite(400, Duration.ofHours(1)))
+                .containsEntry("open-meteo", new Limite(300, Duration.ofHours(1)))
                 .containsEntry("aemet", new Limite(40, Duration.ofHours(1)))
                 .containsEntry("ayuntamiento-malaga", new Limite(40, Duration.ofHours(1)));
     }
