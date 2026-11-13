@@ -41,6 +41,13 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
+		<!-- Cliente HTTP (RestClient.Builder) para Open-Meteo y Overpass.
+			En Spring Boot 4 su autoconfiguración ya no viene con el starter webmvc. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-restclient</artifactId>
+		</dependency>
+
 		<!-- Actuator: health check en /actuator/health -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -77,6 +84,10 @@
 			<artifactId>spring-boot-starter-flyway</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-jackson2</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
@@ -97,9 +108,16 @@
 			<artifactId>spring-boot-starter-actuator-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- Incluye spring-security-test y la autoconfiguración de seguridad de @WebMvcTest -->
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>mockwebserver</artifactId>
+			<version>4.12.0</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- Testcontainers: las pruebas de integración (*IT) arrancan su propio PostGIS, con la misma
@@ -156,6 +174,8 @@
 				<configuration>
 					<effort>Max</effort>
 					<threshold>Medium</threshold>
+					<!-- Falsos positivos excluidos, cada uno con su motivo -->
+					<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
 				</configuration>
 				<executions>
 					<execution>

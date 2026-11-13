@@ -10,7 +10,34 @@ spring:
       # El esquema solo lo cambia Flyway (src/main/resources/db/migration); Hibernate solo valida.
       ddl-auto: validate
 
+# Ingesta de datos para el mapa de calor (HeatIngestionProperties). Se lanza a mano con
+# POST /api/ingestion/weather y POST /api/ingestion/urban.
 weather:
+  heat:
+    # Open-Meteo (uso no comercial gratuito, con atribución).
+    open-meteo-url: https://api.open-meteo.com/v1/forecast
+    # Overpass de OpenStreetMap (ODbL, con atribución). Es un servicio compartido: no abusar.
+    overpass-url: https://overpass-api.de/api/interpreter
+    # Recuadro de Málaga para Overpass: sur, oeste, norte, este.
+    overpass-bbox: 36.65,-4.55,36.78,-4.33
+    # Puntos de la ciudad donde se consulta el tiempo; cada uno es una petición a Open-Meteo.
+    points:
+      - name: Centro
+        latitude: 36.7213
+        longitude: -4.4214
+      - name: Teatinos
+        latitude: 36.7160
+        longitude: -4.4720
+      - name: El Palo
+        latitude: 36.7210
+        longitude: -4.3600
+      - name: Carretera de Cádiz
+        latitude: 36.7010
+        longitude: -4.4440
+      - name: Ciudad Jardín
+        latitude: 36.7390
+        longitude: -4.4300
+        
   teselas:
     # Proveedor de las teselas del mapa base. OpenStreetMap exige un User-Agent que identifique a
     # la aplicación (https://operations.osmfoundation.org/policies/tiles/).
