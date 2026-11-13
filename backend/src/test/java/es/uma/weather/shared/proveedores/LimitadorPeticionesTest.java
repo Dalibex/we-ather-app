@@ -9,10 +9,14 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 /**
  * El limitador deja pasar las peticiones hasta el límite de cada proveedor dentro de su ventana.
  */
+@ExtendWith(OutputCaptureExtension.class)
 class LimitadorPeticionesTest {
 
     private final RelojManual reloj = new RelojManual(Instant.parse("2026-11-11T10:00:00Z"));
@@ -46,6 +50,15 @@ class LimitadorPeticionesTest {
         reloj.avanzar(Duration.ofHours(1));
 
         assertThat(limitador.permitir("open-meteo")).isTrue();
+    }
+
+    @Test
+    void avisaEnElLogAlRechazarUnaPeticion(CapturedOutput salida) {
+        limitador.permitir("aemet");
+
+        limitador.permitir("aemet");
+
+        assertThat(salida).contains("WARN").contains("aemet");
     }
 
     @Test
