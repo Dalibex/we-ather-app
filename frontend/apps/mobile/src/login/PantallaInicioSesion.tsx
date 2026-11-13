@@ -1,14 +1,5 @@
-
 import { useEffect, useState } from 'react';
-import {
-  Animated,
-  Keyboard,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Animated, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { PatronBiznagas } from '../components/PatronBiznagas';
 import { CabeceraLogo } from '../components/CabeceraLogo';
 import { estilosFormulario as estilos } from '../theme/formulario';
@@ -25,18 +16,12 @@ interface Props {
 }
 
 /** Pantalla de inicio de sesión. */
-export function PantallaInicioSesion({
-  onEnviar,
-  onVolver,
-  onIrRegistro,
-}: Props) {
+export function PantallaInicioSesion({ onEnviar, onVolver, onIrRegistro }: Props) {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [tecladoVisible, setTecladoVisible] = useState(false);
 
-  const [desplazamiento] = useState(
-    () => new Animated.Value(0)
-  );
+  const [desplazamiento] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const mostrar = Keyboard.addListener('keyboardDidShow', () => {
@@ -105,9 +90,7 @@ export function PantallaInicioSesion({
         <CabeceraLogo />
 
         <Text style={estilos.titulo}>Iniciar sesión</Text>
-        <Text style={estilos.subtitulo}>
-          Tu próximo paseo, un poco más fresco
-        </Text>
+        <Text style={estilos.subtitulo}>Tu próximo paseo, un poco más fresco</Text>
 
         <Text style={estilos.etiqueta}>Correo electrónico</Text>
         <TextInput
@@ -137,18 +120,14 @@ export function PantallaInicioSesion({
         />
 
         <View style={estilosLocal.contenedorRegistro}>
-          <Text style={estilosLocal.textoRegistro}>
-            ¿No tienes cuenta?
-          </Text>
+          <Text style={estilosLocal.textoRegistro}>¿No tienes cuenta?</Text>
           <Pressable
             accessibilityRole="link"
             accessibilityLabel="Regístrate"
             onPress={onIrRegistro}
             hitSlop={8}
           >
-            <Text style={estilosLocal.registroDestacado}>
-              Regístrate
-            </Text>
+            <Text style={estilosLocal.registroDestacado}>Regístrate</Text>
           </Pressable>
         </View>
 

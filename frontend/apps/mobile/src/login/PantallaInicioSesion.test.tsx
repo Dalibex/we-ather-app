@@ -1,11 +1,8 @@
-
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { PantallaInicioSesion } from './PantallaInicioSesion';
 
-async function renderPantalla(
-  props: Partial<Parameters<typeof PantallaInicioSesion>[0]> = {},
-) {
+async function renderPantalla(props: Partial<Parameters<typeof PantallaInicioSesion>[0]> = {}) {
   await render(
     <PantallaInicioSesion
       onEnviar={jest.fn()}
@@ -22,9 +19,7 @@ describe('PantallaInicioSesion', () => {
 
     expect(screen.getByLabelText('Correo electrónico')).toBeOnTheScreen();
     expect(screen.getByLabelText('Contraseña')).toBeOnTheScreen();
-    expect(
-      screen.getByRole('button', { name: 'Iniciar sesión' }),
-    ).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Iniciar sesión' })).toBeOnTheScreen();
   });
 
   it('prepara el campo de correo para escribir un correo', async () => {
@@ -40,28 +35,18 @@ describe('PantallaInicioSesion', () => {
   it('oculta la contraseña mientras se escribe', async () => {
     await renderPantalla();
 
-    expect(
-      screen.getByLabelText('Contraseña').props.secureTextEntry,
-    ).toBe(true);
+    expect(screen.getByLabelText('Contraseña').props.secureTextEntry).toBe(true);
   });
 
   it('entrega a onEnviar el correo y la contraseña introducidos', async () => {
     const onEnviar = jest.fn();
     await renderPantalla({ onEnviar });
 
-    await fireEvent.changeText(
-      screen.getByLabelText('Correo electrónico'),
-      'persona@example.com',
-    );
+    await fireEvent.changeText(screen.getByLabelText('Correo electrónico'), 'persona@example.com');
 
-    await fireEvent.changeText(
-      screen.getByLabelText('Contraseña'),
-      'contraseña-de-prueba',
-    );
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'contraseña-de-prueba');
 
-    await fireEvent.press(
-      screen.getByRole('button', { name: 'Iniciar sesión' }),
-    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Iniciar sesión' }));
 
     expect(onEnviar).toHaveBeenCalledTimes(1);
     expect(onEnviar).toHaveBeenCalledWith({
@@ -74,9 +59,7 @@ describe('PantallaInicioSesion', () => {
     const onVolver = jest.fn();
     await renderPantalla({ onVolver });
 
-    await fireEvent.press(
-      screen.getByRole('button', { name: 'Volver' }),
-    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
 
     expect(onVolver).toHaveBeenCalledTimes(1);
   });

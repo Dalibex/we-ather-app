@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import {
   Animated,
@@ -38,9 +37,7 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
   const [privacidadAceptada, setPrivacidadAceptada] = useState(false);
   const [tecladoVisible, setTecladoVisible] = useState(false);
 
-  const [desplazamiento] = useState(
-    () => new Animated.Value(0)
-  );
+  const [desplazamiento] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const mostrar = Keyboard.addListener('keyboardDidShow', () => {
@@ -110,9 +107,7 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
 
         <Text style={estilos.titulo}>Crear cuenta</Text>
 
-        <Text style={estilos.subtitulo}>
-          Únete para pasear sin sorpresas de calor
-        </Text>
+        <Text style={estilos.subtitulo}>Únete para pasear sin sorpresas de calor</Text>
 
         <Text style={estilos.etiqueta}>Correo electrónico</Text>
         <TextInput
@@ -147,12 +142,7 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
           onPress={() => setPrivacidadAceptada((aceptada) => !aceptada)}
           style={estilosLocal.casilla}
         >
-          <View
-            style={[
-              estilosLocal.cuadro,
-              privacidadAceptada && estilosLocal.cuadroMarcado,
-            ]}
-          >
+          <View style={[estilosLocal.cuadro, privacidadAceptada && estilosLocal.cuadroMarcado]}>
             {privacidadAceptada && <Text style={estilosLocal.marca}>✓</Text>}
           </View>
           <Text style={estilosLocal.textoCasilla}>
@@ -166,9 +156,7 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
           style={estilosLocal.enlacePolitica}
           hitSlop={8}
         >
-          <Text style={estilosLocal.enlacePoliticaTexto}>
-            Leer la política de privacidad
-          </Text>
+          <Text style={estilosLocal.enlacePoliticaTexto}>Leer la política de privacidad</Text>
         </Pressable>
 
         <Pressable

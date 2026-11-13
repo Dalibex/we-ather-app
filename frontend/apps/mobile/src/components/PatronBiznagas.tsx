@@ -9,10 +9,7 @@ export function PatronBiznagas() {
         <View key={index} style={styles.baldosa}>
           <Image
             source={iconoBiznaga}
-            style={[
-              styles.iconoBiznaga,
-              { transform: [{ rotate: `${(index % 4) * 20}deg` }] },
-            ]}
+            style={[styles.iconoBiznaga, { transform: [{ rotate: `${(index % 4) * 20}deg` }] }]}
             resizeMode="contain"
           />
         </View>
@@ -38,6 +35,6 @@ const styles = StyleSheet.create({
   iconoBiznaga: {
     width: 42,
     height: 42,
-    opacity: 0.10,
+    opacity: 0.1,
   },
 });
