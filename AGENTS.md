@@ -27,7 +27,7 @@ indicaciones paso a paso en texto.
   (OpenStreetMap, Open-Meteo, AEMET, Ayuntamiento de Málaga) y con los reportes validados de los
   usuarios. Ese mapa de calor es interno: solo lo usa el cálculo de rutas, no se muestra.
 - Los usuarios registrados envían reportes (valoración de 1 a 5 y comentario de texto o voz) sobre
-  un punto del mapa. Se guardan anonimizados y solo los validados ajustan el mapa de calor, durante
+  un punto del mapa. Se guardan seudonimizados y solo los validados ajustan el mapa de calor, durante
   un tiempo limitado.
 - Los administradores revisan los reportes dudosos, los retiran y bloquean usuarios.
 

@@ -8,6 +8,11 @@ reporte ni qué ruta ha pedido.
 
 Para buscar rutas no necesitas cuenta. La cuenta solo hace falta para enviar reportes sobre el calor.
 
+**WEather está en desarrollo.** Hoy la app todavía no envía al servidor los datos de la cuenta ni
+permite enviar reportes. Las medidas de los apartados 3, 7 y 9 (la relación cifrada entre reportes y
+cuentas, los registros de acceso, las copias de seguridad y el bloqueo de las cuentas dadas de baja)
+se están construyendo y estarán funcionando antes de que la app guarde esos datos.
+
 ## 1. Quién trata tus datos
 
 WEather es un proyecto académico del grupo NeoForge, desarrollado en la Universidad de Málaga.
@@ -26,7 +31,7 @@ WEather es un proyecto académico del grupo NeoForge, desarrollado en la Univers
 | Fecha en que confirmaste tener 14 años o más y haber leído esta política | Poder demostrar que se te informó antes de crear la cuenta | Al registrarte |
 | Reportes: valoración de 1 a 5, comentario de texto o de voz, punto del mapa y hora | Mejorar la estimación del calor de cada zona | Cuando envías un reporte |
 | Origen y destino que escribes | Calcular las rutas. No se asocian a tu cuenta ni se guardan con ella | En cada búsqueda |
-| Registros de acceso (fecha, acción realizada y dirección IP) | Proteger el servicio, detectar abusos y poder investigar incidentes | Cuando usas la app |
+| Registros de acceso (fecha, acción realizada y dirección IP). Nunca guardan el origen ni el destino de tus búsquedas, para que nadie pueda saber qué ruta pediste | Proteger el servicio, detectar abusos y poder investigar incidentes | Cuando usas la app |
 
 **Lo que no recogemos:** tu ubicación en tiempo real ni el GPS (el origen y el destino los escribes
 tú), tu nombre, tu teléfono, tus contactos ni tus fotos. El micrófono solo se usa si decides enviar
@@ -68,11 +73,11 @@ externos de datos abiertos:
 | --- | --- | --- |
 | OpenStreetMap (imágenes del mapa) | Nada sobre ti: nuestro servidor descarga las imágenes del mapa de Málaga, las guarda y se las sirve a la app, así que OpenStreetMap no ve tu dirección IP | Mostrarte el mapa de Málaga |
 | Nominatim (OpenStreetMap) | El texto del origen y el destino, enviado por nuestro servidor, sin ningún dato de tu cuenta | Convertir lo que escribes en una posición del mapa |
-| Motor de rutas (OSRM) | Las coordenadas del origen y el destino, sin ningún dato de tu cuenta | Calcular las rutas |
 | Open-Meteo, AEMET y Ayuntamiento de Málaga | Nada sobre ti: solo les pedimos datos meteorológicos y urbanos | Estimar el calor de cada calle |
 
-La Fundación OpenStreetMap tiene su sede en Reino Unido. Si en el futuro se añade un servicio para
-transcribir los reportes de voz, se indicará aquí antes de usarlo.
+Las rutas las calcula nuestro propio motor de rutas (OSRM), alojado por WEather, así que no se
+envían a ningún tercero. La Fundación OpenStreetMap tiene su sede en Reino Unido. Si en el futuro se
+añade un servicio para transcribir los reportes de voz, se indicará aquí antes de usarlo.
 
 ## 6. Historial de rutas
 
@@ -90,7 +95,8 @@ cuando quieras.
 | Copias de seguridad | 30 días; después se sustituyen por otras nuevas |
 
 **Si das de baja tu cuenta** (o la bloquea un administrador), no se borra en el momento: queda
-**deshabilitada y bloqueada** durante **3 años**, como prevé el artículo 32 de la LOPDGDD. Durante
+**deshabilitada y bloqueada** durante **3 años**, el plazo en que prescriben las posibles
+responsabilidades (artículos 32 y 72 de la LOPDGDD). Durante
 ese tiempo nadie puede usarla ni consultarla, salvo que la pidan jueces, tribunales o autoridades
 para atender posibles responsabilidades. Pasados los 3 años, se borra.
 
