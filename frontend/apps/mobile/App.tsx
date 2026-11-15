@@ -1,100 +1,54 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { PantallaRegistro } from './src/registro/PantallaRegistro';
+import { PantallaBienvenida } from './src/bienvenida/PantallaBienvenida';
 import { PantallaInicioSesion } from './src/login/PantallaInicioSesion';
+import { PantallaMapa } from './src/mapa/PantallaMapa';
+import { PantallaRegistro } from './src/registro/PantallaRegistro';
 
-type Pantalla = 'inicio' | 'registro' | 'login';
+type Pantalla = 'bienvenida' | 'mapa' | 'registro' | 'login';
+/** Pantallas desde las que se entra al registro o al inicio de sesión, y a las que vuelve «Volver». */
+type Origen = 'bienvenida' | 'mapa';
 
-/** Raíz de la app: la pantalla inicial y, desde ella, el registro y el inicio de sesión. */
+/**
+ * Raíz de la app. Empieza en la bienvenida, desde la que se inicia sesión, se crea una cuenta o se
+ * sigue sin cuenta hasta el mapa. Desde el mapa también se puede iniciar sesión.
+ */
 export default function App() {
-  const [pantalla, setPantalla] = useState<Pantalla>('inicio');
+  const [pantalla, setPantalla] = useState<Pantalla>('bienvenida');
+  const [origen, setOrigen] = useState<Origen>('bienvenida');
+
+  const abrirAcceso = (destino: 'registro' | 'login', desde: Origen) => {
+    setOrigen(desde);
+    setPantalla(destino);
+  };
 
   return (
-    <>
+    <SafeAreaProvider>
       {pantalla === 'registro' ? (
         <PantallaRegistro
           // Validar y enviar los datos llega con T-01.2, T-01.3 y T-02.3. Nunca se escriben en la consola.
           onEnviar={() => {}}
-          onVolver={() => setPantalla('inicio')}
+          onVolver={() => setPantalla(origen)}
           onIniciarSesion={() => setPantalla('login')}
         />
       ) : pantalla === 'login' ? (
         <PantallaInicioSesion
           onEnviar={() => {}}
-          onVolver={() => setPantalla('inicio')}
+          onVolver={() => setPantalla(origen)}
           onIrRegistro={() => setPantalla('registro')}
         />
+      ) : pantalla === 'mapa' ? (
+        <PantallaMapa onIniciarSesion={() => abrirAcceso('login', 'mapa')} />
       ) : (
-        <View style={styles.container}>
-          <Text style={styles.title}>WEather</Text>
-
-          <Text style={styles.subtitle}>Rutas a pie por Málaga con menos calor.</Text>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setPantalla('login')}
-            style={styles.loginButton}
-          >
-            <Text style={styles.buttonText}>Iniciar sesión</Text>
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setPantalla('registro')}
-            style={styles.registerButton}
-          >
-            <Text style={styles.buttonText}>Crear cuenta</Text>
-          </Pressable>
-        </View>
+        <PantallaBienvenida
+          onIniciarSesion={() => abrirAcceso('login', 'bienvenida')}
+          onCrearCuenta={() => abrirAcceso('registro', 'bienvenida')}
+          onContinuarSinCuenta={() => setPantalla('mapa')}
+        />
       )}
-
       <StatusBar style="auto" />
-    </>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  title: {
-    color: '#0F172A',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    color: '#64748B',
-    fontSize: 16,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  loginButton: {
-    backgroundColor: '#2563EB',
-    borderRadius: 8,
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    width: '100%',
-    alignItems: 'center',
-  },
-  registerButton: {
-    backgroundColor: '#64748B',
-    borderRadius: 8,
-    marginTop: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});

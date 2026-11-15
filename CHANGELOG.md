@@ -23,12 +23,30 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   móvil (Expo) y panel de administración (Vite y React) en `frontend/`, y hook `pre-commit` que
   formatea el código. El arranque está en `docs/development.md`.
 - Dependabot vigila también las dependencias de Maven y de pnpm.
+- App móvil: la pantalla principal muestra el mapa base de Málaga con teselas de OpenStreetMap y su
+  atribución (T-05.2). La app móvil tiene ya pruebas con Jest.
+- Servidor: `GET /api/v1/teselas/{z}/{x}/{y}.png`, público, sirve las teselas de OpenStreetMap que
+  cubren Málaga. Las descarga identificándose, las guarda en disco y, si OpenStreetMap falla, sirve
+  la última copia válida. La app móvil pide las teselas al servidor (`EXPO_PUBLIC_API_URL`), porque
+  OpenStreetMap bloquea las peticiones directas desde Android (T-05.2).
+- App móvil: la atribución de OpenStreetMap y el logo del mapa se colocan por encima de los botones
+  de navegación del sistema, para que se lean y se puedan pulsar (T-05.2).
+- App móvil: el mapa muestra la atribución de todos los proveedores de datos (OpenStreetMap,
+  Open-Meteo, AEMET y Ayuntamiento de Málaga), cada una enlazada a su licencia o a su web
+  (T-20.2).
+- Servidor: límite de peticiones por proveedor de datos externo, configurado en
+  `weather.proveedores.limites` de `application.yaml` (T-20.2).
 - App móvil: pantalla de registro con correo, contraseña, la declaración de tener 14 años o más con
   la aceptación de la política de privacidad y un enlace para leerla, accesible desde la pantalla
   inicial con «Crear cuenta». Todavía no valida ni envía los datos (HU-01, T-01.1).
 - Política de privacidad en `docs/privacidad.md`: datos que se tratan, seudonimización de los
   reportes, servicios externos, plazos de conservación y bloqueo, derechos y edad mínima.
 - Pruebas de la app móvil con Jest y Testing Library (`pnpm test`).
-- App móvil: pantalla de inicio de sesión con correo y contraseña, accesible desde la pantalla
-  inicial con «Iniciar sesión». El registro y el inicio de sesión se enlazan entre sí y comparten
+- App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
+  «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
+  (T-01.1).
+- Política de privacidad: OpenStreetMap ya no recibe la IP del usuario, porque el servidor sirve las
+  teselas del mapa.
+- App móvil: pantalla de inicio de sesión con correo y contraseña, accesible desde la pantalla de
+  bienvenida con «Iniciar sesión». El registro y el inicio de sesión se enlazan entre sí y comparten
   diseño. Todavía no autentica ni envía las credenciales al servidor (HU-02, T-02.1).
