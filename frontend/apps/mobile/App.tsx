@@ -7,7 +7,7 @@ import { PantallaInicioSesion } from './src/login/PantallaInicioSesion';
 
 type Pantalla = 'inicio' | 'registro' | 'login';
 
-/** Raíz de la app: la pantalla inicial y, desde ella, la de registro. */
+/** Raíz de la app: la pantalla inicial y, desde ella, el registro y el inicio de sesión. */
 export default function App() {
   const [pantalla, setPantalla] = useState<Pantalla>('inicio');
 

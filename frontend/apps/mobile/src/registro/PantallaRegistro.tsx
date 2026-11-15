@@ -1,16 +1,8 @@
-import { useEffect, useState } from 'react';
-import {
-  Animated,
-  Keyboard,
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { PatronBiznagas } from '../components/PatronBiznagas';
-import { CabeceraLogo } from '../components/CabeceraLogo';
+import { useState } from 'react';
+import { Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import { MarcoAutenticacion } from '../components/MarcoAutenticacion';
+import { colores } from '../theme/colores';
 import { estilosFormulario as estilos } from '../theme/formulario';
 
 /** La política vive en docs/privacidad.md; la app abre la versión publicada en main. */
@@ -25,8 +17,11 @@ export interface DatosRegistro {
 }
 
 interface Props {
+  /** Recibe los datos al pulsar «Crear cuenta». Validarlos y enviarlos no es cosa de esta pantalla. */
   onEnviar: (datos: DatosRegistro) => void;
+  /** Vuelve a la pantalla anterior. */
   onVolver: () => void;
+  /** Lleva al inicio de sesión, para quien ya tiene cuenta. */
   onIniciarSesion: () => void;
 }
 
@@ -35,152 +30,87 @@ export function PantallaRegistro({ onEnviar, onVolver, onIniciarSesion }: Props)
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [privacidadAceptada, setPrivacidadAceptada] = useState(false);
-  const [tecladoVisible, setTecladoVisible] = useState(false);
-
-  const [desplazamiento] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    const mostrar = Keyboard.addListener('keyboardDidShow', () => {
-      setTecladoVisible(true);
-    });
-
-    const ocultar = Keyboard.addListener('keyboardDidHide', () => {
-      setTecladoVisible(false);
-    });
-
-    return () => {
-      mostrar.remove();
-      ocultar.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    const animacion = Animated.timing(desplazamiento, {
-      toValue: tecladoVisible ? 1 : 0,
-      duration: 500,
-      useNativeDriver: false,
-    });
-
-    animacion.start();
-
-    return () => animacion.stop();
-  }, [tecladoVisible, desplazamiento]);
-
-  const paddingTop = desplazamiento.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 8],
-  });
-
-  const posicion = desplazamiento.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -100],
-  });
 
   return (
-    <Animated.View
-      style={[
-        estilos.container,
-        {
-          paddingTop,
-          transform: [{ translateY: posicion }],
-        },
-      ]}
+    <MarcoAutenticacion
+      titulo="Crear cuenta"
+      subtitulo="Únete para pasear sin sorpresas de calor"
+      onVolver={onVolver}
     >
-      <PatronBiznagas />
+      <Text style={estilos.etiqueta}>Correo electrónico</Text>
+      <TextInput
+        accessibilityLabel="Correo electrónico"
+        value={correo}
+        onChangeText={setCorreo}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+        autoCorrect={false}
+        placeholder="tu@email.com"
+        placeholderTextColor={colores.placeholder}
+        style={estilos.campo}
+      />
+
+      <Text style={estilos.etiqueta}>Contraseña</Text>
+      <TextInput
+        accessibilityLabel="Contraseña"
+        value={contrasena}
+        onChangeText={setContrasena}
+        secureTextEntry
+        autoCapitalize="none"
+        autoComplete="new-password"
+        placeholder="Tu contraseña"
+        placeholderTextColor={colores.placeholder}
+        style={estilos.campo}
+      />
+
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: privacidadAceptada }}
+        onPress={() => setPrivacidadAceptada((aceptada) => !aceptada)}
+        style={estilosLocal.casilla}
+      >
+        <View style={[estilosLocal.cuadro, privacidadAceptada && estilosLocal.cuadroMarcado]}>
+          {privacidadAceptada && <Text style={estilosLocal.marca}>✓</Text>}
+        </View>
+        <Text style={estilosLocal.textoCasilla}>
+          Tengo 14 años o más y acepto la política de privacidad
+        </Text>
+      </Pressable>
+
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => Linking.openURL(URL_POLITICA_PRIVACIDAD)}
+        style={estilosLocal.enlacePolitica}
+        hitSlop={8}
+      >
+        <Text style={estilosLocal.enlacePoliticaTexto}>Leer la política de privacidad</Text>
+      </Pressable>
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Volver"
-        onPress={onVolver}
-        style={estilos.volver}
+        onPress={() => onEnviar({ correo, contrasena, privacidadAceptada })}
+        style={estilos.boton}
       >
-        <Text style={estilos.enlace}>← Volver</Text>
+        <Text style={estilos.textoBoton}>Crear cuenta</Text>
       </Pressable>
 
-      <View style={estilos.formulario}>
-        <CabeceraLogo />
-
-        <Text style={estilos.titulo}>Crear cuenta</Text>
-
-        <Text style={estilos.subtitulo}>Únete para pasear sin sorpresas de calor</Text>
-
-        <Text style={estilos.etiqueta}>Correo electrónico</Text>
-        <TextInput
-          accessibilityLabel="Correo electrónico"
-          value={correo}
-          onChangeText={setCorreo}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-          autoCorrect={false}
-          placeholder="tu@email.com"
-          placeholderTextColor="#94A3A0"
-          style={estilos.campo}
-        />
-
-        <Text style={estilos.etiqueta}>Contraseña</Text>
-        <TextInput
-          accessibilityLabel="Contraseña"
-          value={contrasena}
-          onChangeText={setContrasena}
-          secureTextEntry
-          autoCapitalize="none"
-          autoComplete="new-password"
-          placeholder="Tu contraseña"
-          placeholderTextColor="#94A3A0"
-          style={estilos.campo}
-        />
-
-        <Pressable
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: privacidadAceptada }}
-          onPress={() => setPrivacidadAceptada((aceptada) => !aceptada)}
-          style={estilosLocal.casilla}
-        >
-          <View style={[estilosLocal.cuadro, privacidadAceptada && estilosLocal.cuadroMarcado]}>
-            {privacidadAceptada && <Text style={estilosLocal.marca}>✓</Text>}
-          </View>
-          <Text style={estilosLocal.textoCasilla}>
-            Tengo 14 años o más y acepto la política de privacidad
-          </Text>
-        </Pressable>
-
+      <View style={estilosLocal.contenedorInicioSesion}>
+        <Text style={estilosLocal.textoInicioSesion}>¿Ya tienes cuenta?</Text>
         <Pressable
           accessibilityRole="link"
-          onPress={() => Linking.openURL(URL_POLITICA_PRIVACIDAD)}
-          style={estilosLocal.enlacePolitica}
+          accessibilityLabel="Inicia sesión"
+          onPress={onIniciarSesion}
           hitSlop={8}
         >
-          <Text style={estilosLocal.enlacePoliticaTexto}>Leer la política de privacidad</Text>
+          <Text style={estilosLocal.inicioSesionDestacado}>Inicia sesión</Text>
         </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => onEnviar({ correo, contrasena, privacidadAceptada })}
-          style={estilos.boton}
-        >
-          <Text style={estilos.textoBoton}>Crear cuenta</Text>
-        </Pressable>
-
-        <View style={estilosLocal.contenedorInicioSesion}>
-          <Text style={estilosLocal.textoInicioSesion}>¿Ya tienes cuenta?</Text>
-          <Pressable
-            accessibilityRole="link"
-            accessibilityLabel="Inicia sesión"
-            onPress={onIniciarSesion}
-            hitSlop={8}
-          >
-            <Text style={estilosLocal.inicioSesionDestacado}>Inicia sesión</Text>
-          </Pressable>
-        </View>
       </View>
-
-      <Text style={estilos.pie}>PARA AGUANTAR LA CALOR</Text>
-    </Animated.View>
+    </MarcoAutenticacion>
   );
 }
 
-/** Solo lo que es exclusivo del registro (casilla y enlace a la política). */
+/** Solo lo que es exclusivo del registro: la casilla, el enlace a la política y el del login. */
 const estilosLocal = StyleSheet.create({
   casilla: {
     alignItems: 'center',
@@ -190,7 +120,7 @@ const estilosLocal = StyleSheet.create({
   },
   cuadro: {
     alignItems: 'center',
-    borderColor: '#718078',
+    borderColor: colores.textoSecundario,
     borderRadius: 4,
     borderWidth: 1,
     height: 22,
@@ -199,16 +129,16 @@ const estilosLocal = StyleSheet.create({
     width: 22,
   },
   cuadroMarcado: {
-    backgroundColor: '#304B43',
-    borderColor: '#304B43',
+    backgroundColor: colores.verde,
+    borderColor: colores.verde,
   },
   marca: {
-    color: '#FFFFFF',
+    color: colores.blanco,
     fontSize: 14,
     fontWeight: 'bold',
   },
   textoCasilla: {
-    color: '#304B43',
+    color: colores.verde,
     flexShrink: 1,
     fontSize: 13,
     lineHeight: 18,
@@ -218,6 +148,12 @@ const estilosLocal = StyleSheet.create({
     marginBottom: 24,
     paddingVertical: 4,
   },
+  enlacePoliticaTexto: {
+    color: colores.verde,
+    fontSize: 13,
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+  },
   contenedorInicioSesion: {
     alignItems: 'center',
     columnGap: 4,
@@ -226,18 +162,12 @@ const estilosLocal = StyleSheet.create({
     marginTop: 16,
   },
   textoInicioSesion: {
-    color: '#718078',
+    color: colores.textoSecundario,
     fontSize: 12,
   },
   inicioSesionDestacado: {
-    color: '#304B43',
+    color: colores.verde,
     fontSize: 12,
     fontWeight: 'bold',
-  },
-  enlacePoliticaTexto: {
-    color: '#304B43',
-    fontSize: 13,
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
   },
 });
