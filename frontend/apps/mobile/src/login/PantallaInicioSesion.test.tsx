@@ -76,4 +76,19 @@ describe('PantallaInicioSesion', () => {
 
     expect(onIrRegistro).toHaveBeenCalledTimes(1);
   });
+
+  it('empieza con el correo que recibe en correoInicial', async () => {
+    await renderPantalla({ correoInicial: 'persona@example.com' });
+
+    expect(screen.getByLabelText('Correo electrónico').props.value).toBe('persona@example.com');
+  });
+
+  it('avisa a onCambiarCorreo cada vez que cambia el correo', async () => {
+    const onCambiarCorreo = jest.fn();
+    await renderPantalla({ onCambiarCorreo });
+
+    await fireEvent.changeText(screen.getByLabelText('Correo electrónico'), 'persona@example.com');
+
+    expect(onCambiarCorreo).toHaveBeenCalledWith('persona@example.com');
+  });
 });

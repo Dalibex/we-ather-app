@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 
 import { PantallaRegistro } from './PantallaRegistro';
 
-const CASILLA = 'Tengo 14 años o más y acepto la política de privacidad';
+const CASILLA = 'Tengo 14 años o más y he leído la política de privacidad';
 
 function renderPantalla(props: Partial<Parameters<typeof PantallaRegistro>[0]> = {}) {
   return render(
@@ -95,5 +95,28 @@ describe('PantallaRegistro', () => {
     await fireEvent.press(screen.getByRole('link', { name: 'Inicia sesión' }));
 
     expect(onIniciarSesion).toHaveBeenCalledTimes(1);
+  });
+
+  it('mantiene el nombre de la casilla al marcarla, para que el lector de pantalla diga lo mismo', async () => {
+    await renderPantalla();
+
+    await fireEvent.press(screen.getByRole('checkbox', { name: CASILLA }));
+
+    expect(screen.getByRole('checkbox', { name: CASILLA })).toBeChecked();
+  });
+
+  it('empieza con el correo que recibe en correoInicial', async () => {
+    await renderPantalla({ correoInicial: 'persona@example.com' });
+
+    expect(screen.getByLabelText('Correo electrónico').props.value).toBe('persona@example.com');
+  });
+
+  it('avisa a onCambiarCorreo cada vez que cambia el correo', async () => {
+    const onCambiarCorreo = jest.fn();
+    await renderPantalla({ onCambiarCorreo });
+
+    await fireEvent.changeText(screen.getByLabelText('Correo electrónico'), 'persona@example.com');
+
+    expect(onCambiarCorreo).toHaveBeenCalledWith('persona@example.com');
   });
 });
