@@ -23,7 +23,7 @@ WEather es un proyecto académico del grupo NeoForge, desarrollado en la Univers
 | --- | --- | --- |
 | Correo electrónico | Identificar tu cuenta y que puedas iniciar sesión | Al registrarte |
 | Contraseña | Que puedas iniciar sesión. Solo guardamos una huella cifrada (hash), nunca la contraseña | Al registrarte |
-| Fecha en que aceptaste esta política | Poder demostrar que la aceptaste | Al registrarte |
+| Fecha en que confirmaste tener 14 años o más y haber leído esta política | Poder demostrar que se te informó antes de crear la cuenta | Al registrarte |
 | Reportes: valoración de 1 a 5, comentario de texto o de voz, punto del mapa y hora | Mejorar la estimación del calor de cada zona | Cuando envías un reporte |
 | Origen y destino que escribes | Calcular las rutas. No se asocian a tu cuenta ni se guardan con ella | En cada búsqueda |
 | Registros de acceso (fecha, acción realizada y dirección IP) | Proteger el servicio, detectar abusos y poder investigar incidentes | Cuando usas la app |
@@ -84,7 +84,7 @@ cuando quieras.
 
 | Dato | Cuánto tiempo |
 | --- | --- |
-| Cuenta (correo, hash de la contraseña y fecha de aceptación) | Mientras la cuenta esté activa |
+| Cuenta (correo, hash de la contraseña y fecha de esa confirmación) | Mientras la cuenta esté activa |
 | Reportes | Mientras la cuenta esté activa, seudonimizados. Solo influyen en las rutas durante un tiempo limitado |
 | Registros de acceso | 1 año |
 | Copias de seguridad | 30 días; después se sustituyen por otras nuevas |
@@ -121,10 +121,12 @@ como máximo. Si crees que no hemos tratado bien tus datos, puedes reclamar ante
 
 ## 10. Edad mínima
 
-Para crear una cuenta tienes que tener **14 años o más**, la edad a partir de la cual la ley española
-permite dar el consentimiento por uno mismo (artículo 7 de la LOPDGDD).
+Para crear una cuenta tienes que tener **14 años o más**. Es la edad a partir de la cual la ley
+española permite que un menor decida por sí mismo sobre sus datos (artículo 7 de la LOPDGDD), y la
+usamos como edad mínima para tener cuenta.
 
 ## 11. Cambios en esta política
 
 Si cambiamos esta política, actualizaremos la fecha de arriba. Si el cambio afecta a cómo usamos tus
-datos, te lo avisaremos en la app y te pediremos que la aceptes de nuevo.
+datos, te lo avisaremos en la app y te pediremos que la vuelvas a leer antes de seguir usando tu
+cuenta.

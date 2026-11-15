@@ -43,6 +43,7 @@ cd frontend && pnpm install && pnpm dev:web
   priorización, planificación del Sprint 1, métricas y proceso Scrum.
 - [Política de privacidad](docs/privacidad.md): qué datos trata la app, durante cuánto tiempo y
   cómo ejercer tus derechos.
+- [Atribuciones](docs/atribuciones.md): recursos de terceros que usa la app y su autoría.
 - [Desarrollo local](docs/development.md): requisitos, arranque y comprobaciones.
 - [Grabaciones de los Scrum Meetings](docs/dailys/README.md): dónde están y cómo pedir acceso.
 
