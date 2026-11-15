@@ -133,12 +133,20 @@ describe('App', () => {
     expect(screen.getByTestId('mapa-base')).toBeOnTheScreen();
   });
 
-  it('en la bienvenida y el mapa deja que el botón «atrás» actúe como siempre', async () => {
+  it('el botón «atrás» de Android vuelve del mapa a la bienvenida', async () => {
+    const atras = espiarAtras();
+    await render(<App />);
+    await pulsar('Continuar sin cuenta');
+
+    expect(await atras()).toBe(true);
+
+    expect(screen.getByRole('button', { name: 'Continuar sin cuenta' })).toBeOnTheScreen();
+  });
+
+  it('en la bienvenida deja que el botón «atrás» cierre la app, como siempre', async () => {
     const atras = espiarAtras();
     await render(<App />);
 
-    expect(await atras()).toBe(false);
-    await pulsar('Continuar sin cuenta');
     expect(await atras()).toBe(false);
   });
 

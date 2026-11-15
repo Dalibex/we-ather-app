@@ -64,7 +64,7 @@ describe('PantallaRegistro', () => {
     expect(onEnviar).toHaveBeenCalledWith({
       correo: 'persona@example.com',
       contrasena: 'contraseña-de-prueba',
-      privacidadAceptada: true,
+      confirmaEdadYPolitica: true,
     });
   });
 
