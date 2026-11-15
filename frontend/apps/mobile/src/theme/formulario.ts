@@ -1,22 +1,26 @@
 import { StyleSheet } from 'react-native';
 import { colores } from './colores';
 
-/**
- * Estilos compartidos por las pantallas de autenticación
- * (inicio de sesión y registro).
- */
+/** Estilos compartidos por las pantallas de bienvenida, registro e inicio de sesión. */
 export const estilosFormulario = StyleSheet.create({
-  container: {
+  contenedor: {
     flex: 1,
     backgroundColor: colores.fondo,
-    justifyContent: 'center',
-    padding: 24,
     overflow: 'hidden',
+  },
+
+  evitarTeclado: {
+    flex: 1,
+  },
+
+  contenidoDesplazable: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
 
   volver: {
     position: 'absolute',
-    top: 48,
     left: 16,
     padding: 8,
     zIndex: 2,
@@ -34,7 +38,7 @@ export const estilosFormulario = StyleSheet.create({
     zIndex: 1,
   },
 
-  logoContainer: {
+  contenedorLogo: {
     alignItems: 'center',
     marginBottom: 24,
   },
@@ -46,7 +50,7 @@ export const estilosFormulario = StyleSheet.create({
     letterSpacing: 3,
   },
 
-  logoLocation: {
+  ubicacionLogo: {
     color: colores.textoSuave,
     fontSize: 11,
     letterSpacing: 5,

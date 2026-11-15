@@ -9,6 +9,9 @@ import { estilosFormulario as estilos } from '../theme/formulario';
 const URL_POLITICA_PRIVACIDAD =
   'https://github.com/Dalibex/we-ather-app/blob/main/docs/privacidad.md';
 
+// Según el RGPD, la política se informa, no se acepta: el usuario confirma que la ha leído.
+const TEXTO_CASILLA = 'Tengo 14 años o más y he leído la política de privacidad';
+
 /** Lo que el usuario ha escrito en el formulario de registro, tal cual, sin validar. */
 export interface DatosRegistro {
   correo: string;
@@ -23,11 +26,26 @@ interface Props {
   onVolver: () => void;
   /** Lleva al inicio de sesión, para quien ya tiene cuenta. */
   onIniciarSesion: () => void;
+  /** Correo con el que empieza el campo, por ejemplo el que ya se escribió en otra pantalla. */
+  correoInicial?: string;
+  /** Recibe el correo cada vez que cambia, para conservarlo al pasar a otra pantalla. */
+  onCambiarCorreo?: (correo: string) => void;
 }
 
-/** Pantalla de registro (HU-01): correo, contraseña y aceptación de la política de privacidad. */
-export function PantallaRegistro({ onEnviar, onVolver, onIniciarSesion }: Props) {
-  const [correo, setCorreo] = useState('');
+/** Pantalla de registro (HU-01): correo, contraseña, edad mínima y lectura de la política de privacidad. */
+export function PantallaRegistro({
+  onEnviar,
+  onVolver,
+  onIniciarSesion,
+  correoInicial = '',
+  onCambiarCorreo,
+}: Props) {
+  const [correo, setCorreo] = useState(correoInicial);
+  const cambiarCorreo = (nuevo: string) => {
+    setCorreo(nuevo);
+    onCambiarCorreo?.(nuevo);
+  };
+
   const [contrasena, setContrasena] = useState('');
   const [privacidadAceptada, setPrivacidadAceptada] = useState(false);
 
@@ -41,7 +59,7 @@ export function PantallaRegistro({ onEnviar, onVolver, onIniciarSesion }: Props)
       <TextInput
         accessibilityLabel="Correo electrónico"
         value={correo}
-        onChangeText={setCorreo}
+        onChangeText={cambiarCorreo}
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
@@ -66,6 +84,8 @@ export function PantallaRegistro({ onEnviar, onVolver, onIniciarSesion }: Props)
 
       <Pressable
         accessibilityRole="checkbox"
+        // Nombre fijo: así el «✓» del cuadro no cambia lo que lee el lector de pantalla.
+        accessibilityLabel={TEXTO_CASILLA}
         accessibilityState={{ checked: privacidadAceptada }}
         onPress={() => setPrivacidadAceptada((aceptada) => !aceptada)}
         style={estilosLocal.casilla}
@@ -73,16 +93,15 @@ export function PantallaRegistro({ onEnviar, onVolver, onIniciarSesion }: Props)
         <View style={[estilosLocal.cuadro, privacidadAceptada && estilosLocal.cuadroMarcado]}>
           {privacidadAceptada && <Text style={estilosLocal.marca}>✓</Text>}
         </View>
-        <Text style={estilosLocal.textoCasilla}>
-          Tengo 14 años o más y acepto la política de privacidad
-        </Text>
+        <Text style={estilosLocal.textoCasilla}>{TEXTO_CASILLA}</Text>
       </Pressable>
 
       <Pressable
         accessibilityRole="link"
-        onPress={() => Linking.openURL(URL_POLITICA_PRIVACIDAD)}
+        // Si no se puede abrir (sin navegador o sin conexión), no se hace nada en lugar de fallar.
+        onPress={() => void Linking.openURL(URL_POLITICA_PRIVACIDAD).catch(() => {})}
         style={estilosLocal.enlacePolitica}
-        hitSlop={8}
+        hitSlop={14}
       >
         <Text style={estilosLocal.enlacePoliticaTexto}>Leer la política de privacidad</Text>
       </Pressable>
@@ -101,7 +120,7 @@ export function PantallaRegistro({ onEnviar, onVolver, onIniciarSesion }: Props)
           accessibilityRole="link"
           accessibilityLabel="Inicia sesión"
           onPress={onIniciarSesion}
-          hitSlop={8}
+          hitSlop={14}
         >
           <Text style={estilosLocal.inicioSesionDestacado}>Inicia sesión</Text>
         </Pressable>

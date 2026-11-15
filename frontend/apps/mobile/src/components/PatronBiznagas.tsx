@@ -4,12 +4,12 @@ import iconoBiznaga from '../../assets/icono-biznaga-malaga.png';
 /** Patrón decorativo de biznagas para el fondo. */
 export function PatronBiznagas() {
   return (
-    <View pointerEvents="none" style={styles.patron}>
-      {Array.from({ length: 18 }, (_, index) => (
-        <View key={index} style={styles.baldosa}>
+    <View pointerEvents="none" style={estilos.patron}>
+      {Array.from({ length: 18 }, (_, indice) => (
+        <View key={indice} style={estilos.baldosa}>
           <Image
             source={iconoBiznaga}
-            style={[styles.iconoBiznaga, { transform: [{ rotate: `${(index % 4) * 20}deg` }] }]}
+            style={[estilos.iconoBiznaga, { transform: [{ rotate: `${(indice % 4) * 20}deg` }] }]}
             resizeMode="contain"
           />
         </View>
@@ -18,7 +18,7 @@ export function PatronBiznagas() {
   );
 }
 
-const styles = StyleSheet.create({
+const estilos = StyleSheet.create({
   patron: {
     ...StyleSheet.absoluteFill,
     flexDirection: 'row',

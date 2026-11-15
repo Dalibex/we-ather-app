@@ -1,5 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { Animated, Keyboard, Pressable, Text, View } from 'react-native';
+import type { ReactNode } from 'react';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { estilosFormulario as estilos } from '../theme/formulario';
 import { CabeceraLogo } from './CabeceraLogo';
@@ -15,66 +16,57 @@ interface Props {
 }
 
 /**
- * Marco común de las pantallas de bienvenida, registro e inicio de sesión: fondo de biznagas, botón «Volver»,
- * tarjeta con el logotipo, el título y el formulario, y pie. Cuando aparece el teclado, sube el
- * contenido para que no tape los campos de abajo.
+ * Marco común de las pantallas de bienvenida, registro e inicio de sesión: fondo de biznagas, botón
+ * «Volver», tarjeta con el logotipo, el título y el formulario, y pie.
+ *
+ * El contenido se desplaza si no cabe (móviles pequeños o texto ampliado) y se aparta del teclado:
+ * en iOS lo hace `KeyboardAvoidingView`; en Android, el sistema encoge la ventana. «Volver» queda
+ * fuera de la parte que se desplaza y respeta la barra de estado, para que siempre se vea.
  */
 export function MarcoAutenticacion({ titulo, subtitulo, onVolver, children }: Props) {
-  const [tecladoVisible, setTecladoVisible] = useState(false);
-  const [desplazamiento] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    const mostrar = Keyboard.addListener('keyboardDidShow', () => setTecladoVisible(true));
-    const ocultar = Keyboard.addListener('keyboardDidHide', () => setTecladoVisible(false));
-
-    return () => {
-      mostrar.remove();
-      ocultar.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    const animacion = Animated.timing(desplazamiento, {
-      toValue: tecladoVisible ? 1 : 0,
-      duration: 500,
-      useNativeDriver: false,
-    });
-
-    animacion.start();
-
-    return () => animacion.stop();
-  }, [tecladoVisible, desplazamiento]);
-
-  const paddingTop = desplazamiento.interpolate({ inputRange: [0, 1], outputRange: [0, 8] });
-  const posicion = desplazamiento.interpolate({ inputRange: [0, 1], outputRange: [0, -100] });
+  const margenes = useSafeAreaInsets();
 
   return (
-    <Animated.View
-      style={[estilos.container, { paddingTop, transform: [{ translateY: posicion }] }]}
-    >
+    <View style={estilos.contenedor}>
       <PatronBiznagas />
+
+      <KeyboardAvoidingView
+        testID="marco-teclado"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={estilos.evitarTeclado}
+      >
+        <ScrollView
+          testID="marco-desplazable"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[
+            estilos.contenidoDesplazable,
+            { paddingTop: margenes.top + 56, paddingBottom: margenes.bottom + 24 },
+          ]}
+        >
+          <View style={estilos.formulario}>
+            <CabeceraLogo />
+
+            <Text style={estilos.titulo}>{titulo}</Text>
+            <Text style={estilos.subtitulo}>{subtitulo}</Text>
+
+            {children}
+          </View>
+
+          <Text style={estilos.pie}>PARA AGUANTAR LA CALOR</Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {onVolver && (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Volver"
           onPress={onVolver}
-          style={estilos.volver}
+          style={[estilos.volver, { top: margenes.top + 8 }]}
+          hitSlop={8}
         >
           <Text style={estilos.enlace}>← Volver</Text>
         </Pressable>
       )}
-
-      <View style={estilos.formulario}>
-        <CabeceraLogo />
-
-        <Text style={estilos.titulo}>{titulo}</Text>
-        <Text style={estilos.subtitulo}>{subtitulo}</Text>
-
-        {children}
-      </View>
-
-      <Text style={estilos.pie}>PARA AGUANTAR LA CALOR</Text>
-    </Animated.View>
+    </View>
   );
 }

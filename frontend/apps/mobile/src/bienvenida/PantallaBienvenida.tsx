@@ -60,7 +60,8 @@ const estilosLocal = StyleSheet.create({
   sinCuenta: {
     alignSelf: 'center',
     marginTop: 20,
-    paddingVertical: 4,
+    // Con el hitSlop, la zona táctil llega a unos 48 dp.
+    paddingVertical: 8,
   },
   textoSinCuenta: {
     color: colores.textoSecundario,

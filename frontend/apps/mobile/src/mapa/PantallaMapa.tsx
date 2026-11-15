@@ -9,26 +9,26 @@ interface Props {
   onIniciarSesion: () => void;
 }
 
-/** Pantalla del mapa: el mapa base de Málaga con un botón pequeño para iniciar sesión, arriba. */
+/** Pantalla del mapa: el mapa base de Málaga y un botón pequeño para iniciar sesión. */
 export function PantallaMapa({ onIniciarSesion }: Props) {
   const margenes = useSafeAreaInsets();
 
   return (
-    <View style={styles.contenedor}>
+    <View style={estilos.contenedor}>
       <MapaBase />
       <Pressable
         accessibilityRole="button"
         onPress={onIniciarSesion}
-        style={[styles.boton, { top: margenes.top + 8 }]}
+        style={[estilos.boton, { top: margenes.top + 8 }]}
         hitSlop={8}
       >
-        <Text style={styles.textoBoton}>Iniciar sesión</Text>
+        <Text style={estilos.textoBoton}>Iniciar sesión</Text>
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const estilos = StyleSheet.create({
   contenedor: {
     flex: 1,
   },
@@ -40,7 +40,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     position: 'absolute',
-    right: 12,
+    // A la izquierda: arriba a la derecha va la brújula del mapa en iOS, y abajo, la atribución.
+    left: 12,
   },
   textoBoton: {
     color: colores.verde,

@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { BackHandler } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { PantallaBienvenida } from './src/bienvenida/PantallaBienvenida';
@@ -18,6 +19,21 @@ type Origen = 'bienvenida' | 'mapa';
 export default function App() {
   const [pantalla, setPantalla] = useState<Pantalla>('bienvenida');
   const [origen, setOrigen] = useState<Origen>('bienvenida');
+  // Solo el correo pasa del inicio de sesión al registro y al revés; la contraseña, nunca.
+  const [correo, setCorreo] = useState('');
+
+  // En Android, el botón o gesto «atrás» hace lo mismo que «Volver» en el registro y el inicio de
+  // sesión. En la bienvenida y el mapa no se intercepta: el sistema hace lo de siempre.
+  useEffect(() => {
+    if (pantalla !== 'registro' && pantalla !== 'login') {
+      return;
+    }
+    const suscripcion = BackHandler.addEventListener('hardwareBackPress', () => {
+      setPantalla(origen);
+      return true;
+    });
+    return () => suscripcion.remove();
+  }, [pantalla, origen]);
 
   const abrirAcceso = (destino: 'registro' | 'login', desde: Origen) => {
     setOrigen(desde);
@@ -32,12 +48,16 @@ export default function App() {
           onEnviar={() => {}}
           onVolver={() => setPantalla(origen)}
           onIniciarSesion={() => setPantalla('login')}
+          correoInicial={correo}
+          onCambiarCorreo={setCorreo}
         />
       ) : pantalla === 'login' ? (
         <PantallaInicioSesion
           onEnviar={() => {}}
           onVolver={() => setPantalla(origen)}
           onIrRegistro={() => setPantalla('registro')}
+          correoInicial={correo}
+          onCambiarCorreo={setCorreo}
         />
       ) : pantalla === 'mapa' ? (
         <PantallaMapa onIniciarSesion={() => abrirAcceso('login', 'mapa')} />

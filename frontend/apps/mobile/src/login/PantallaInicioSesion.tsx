@@ -18,11 +18,26 @@ interface Props {
   onVolver: () => void;
   /** Lleva al registro, para quien todavía no tiene cuenta. */
   onIrRegistro: () => void;
+  /** Correo con el que empieza el campo, por ejemplo el que ya se escribió en otra pantalla. */
+  correoInicial?: string;
+  /** Recibe el correo cada vez que cambia, para conservarlo al pasar a otra pantalla. */
+  onCambiarCorreo?: (correo: string) => void;
 }
 
 /** Pantalla de inicio de sesión (HU-02): correo y contraseña. */
-export function PantallaInicioSesion({ onEnviar, onVolver, onIrRegistro }: Props) {
-  const [correo, setCorreo] = useState('');
+export function PantallaInicioSesion({
+  onEnviar,
+  onVolver,
+  onIrRegistro,
+  correoInicial = '',
+  onCambiarCorreo,
+}: Props) {
+  const [correo, setCorreo] = useState(correoInicial);
+  const cambiarCorreo = (nuevo: string) => {
+    setCorreo(nuevo);
+    onCambiarCorreo?.(nuevo);
+  };
+
   const [contrasena, setContrasena] = useState('');
 
   return (
@@ -35,7 +50,7 @@ export function PantallaInicioSesion({ onEnviar, onVolver, onIrRegistro }: Props
       <TextInput
         accessibilityLabel="Correo electrónico"
         value={correo}
-        onChangeText={setCorreo}
+        onChangeText={cambiarCorreo}
         keyboardType="email-address"
         autoCapitalize="none"
         autoComplete="email"
@@ -64,7 +79,7 @@ export function PantallaInicioSesion({ onEnviar, onVolver, onIrRegistro }: Props
           accessibilityRole="link"
           accessibilityLabel="Regístrate"
           onPress={onIrRegistro}
-          hitSlop={8}
+          hitSlop={14}
         >
           <Text style={estilosLocal.registroDestacado}>Regístrate</Text>
         </Pressable>
