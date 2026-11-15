@@ -87,4 +87,13 @@ describe('PantallaRegistro', () => {
       'https://github.com/Dalibex/we-ather-app/blob/main/docs/privacidad.md',
     );
   });
+
+  it('lleva al inicio de sesión al pulsar el enlace para quien ya tiene cuenta', async () => {
+    const onIniciarSesion = jest.fn();
+    await renderPantalla({ onIniciarSesion });
+
+    await fireEvent.press(screen.getByRole('link', { name: 'Inicia sesión' }));
+
+    expect(onIniciarSesion).toHaveBeenCalledTimes(1);
+  });
 });
