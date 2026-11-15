@@ -32,4 +32,14 @@ describe('MarcoAutenticacion', () => {
 
     expect(onVolver).toHaveBeenCalledTimes(1);
   });
+
+  it('no muestra el botón de volver si no recibe onVolver', async () => {
+    await render(
+      <MarcoAutenticacion titulo="Título" subtitulo="Subtítulo">
+        <Text>Contenido</Text>
+      </MarcoAutenticacion>,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Volver' })).not.toBeOnTheScreen();
+  });
 });
