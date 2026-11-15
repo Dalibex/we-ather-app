@@ -22,14 +22,16 @@ export default function App() {
   // Solo el correo pasa del inicio de sesión al registro y al revés; la contraseña, nunca.
   const [correo, setCorreo] = useState('');
 
-  // En Android, el botón o gesto «atrás» hace lo mismo que «Volver» en el registro y el inicio de
-  // sesión. En la bienvenida y el mapa no se intercepta: el sistema hace lo de siempre.
+  // En Android, el botón o gesto «atrás» vuelve a la pantalla anterior: del registro o el inicio de
+  // sesión, a la de origen; del mapa, a la bienvenida. En la bienvenida no se intercepta y el sistema
+  // cierra la app, como siempre.
   useEffect(() => {
-    if (pantalla !== 'registro' && pantalla !== 'login') {
+    if (pantalla === 'bienvenida') {
       return;
     }
+    const anterior: Pantalla = pantalla === 'mapa' ? 'bienvenida' : origen;
     const suscripcion = BackHandler.addEventListener('hardwareBackPress', () => {
-      setPantalla(origen);
+      setPantalla(anterior);
       return true;
     });
     return () => suscripcion.remove();

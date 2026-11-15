@@ -19,8 +19,9 @@ interface Props {
  * Marco común de las pantallas de bienvenida, registro e inicio de sesión: fondo de biznagas, botón
  * «Volver», tarjeta con el logotipo, el título y el formulario, y pie.
  *
- * El contenido se desplaza si no cabe (móviles pequeños o texto ampliado) y se aparta del teclado:
- * en iOS lo hace `KeyboardAvoidingView`; en Android, el sistema encoge la ventana. «Volver» queda
+ * El contenido se desplaza si no cabe (móviles pequeños o texto ampliado) y se aparta del teclado
+ * con `KeyboardAvoidingView`: en iOS añadiendo relleno y en Android reduciendo la altura, porque desde
+ * Android 15 las apps van de borde a borde y el sistema puede no encoger la ventana. «Volver» queda
  * fuera de la parte que se desplaza y respeta la barra de estado, para que siempre se vea.
  */
 export function MarcoAutenticacion({ titulo, subtitulo, onVolver, children }: Props) {
@@ -31,8 +32,7 @@ export function MarcoAutenticacion({ titulo, subtitulo, onVolver, children }: Pr
       <PatronBiznagas />
 
       <KeyboardAvoidingView
-        testID="marco-teclado"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={estilos.evitarTeclado}
       >
         <ScrollView

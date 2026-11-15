@@ -16,7 +16,8 @@ const TEXTO_CASILLA = 'Tengo 14 años o más y he leído la política de privaci
 export interface DatosRegistro {
   correo: string;
   contrasena: string;
-  privacidadAceptada: boolean;
+  /** Si confirmó tener 14 años o más y haber leído la política (columna `privacidad_aceptada_en`). */
+  confirmaEdadYPolitica: boolean;
 }
 
 interface Props {
@@ -47,7 +48,7 @@ export function PantallaRegistro({
   };
 
   const [contrasena, setContrasena] = useState('');
-  const [privacidadAceptada, setPrivacidadAceptada] = useState(false);
+  const [confirmaEdadYPolitica, setConfirmaEdadYPolitica] = useState(false);
 
   return (
     <MarcoAutenticacion
@@ -86,12 +87,12 @@ export function PantallaRegistro({
         accessibilityRole="checkbox"
         // Nombre fijo: así el «✓» del cuadro no cambia lo que lee el lector de pantalla.
         accessibilityLabel={TEXTO_CASILLA}
-        accessibilityState={{ checked: privacidadAceptada }}
-        onPress={() => setPrivacidadAceptada((aceptada) => !aceptada)}
+        accessibilityState={{ checked: confirmaEdadYPolitica }}
+        onPress={() => setConfirmaEdadYPolitica((marcada) => !marcada)}
         style={estilosLocal.casilla}
       >
-        <View style={[estilosLocal.cuadro, privacidadAceptada && estilosLocal.cuadroMarcado]}>
-          {privacidadAceptada && <Text style={estilosLocal.marca}>✓</Text>}
+        <View style={[estilosLocal.cuadro, confirmaEdadYPolitica && estilosLocal.cuadroMarcado]}>
+          {confirmaEdadYPolitica && <Text style={estilosLocal.marca}>✓</Text>}
         </View>
         <Text style={estilosLocal.textoCasilla}>{TEXTO_CASILLA}</Text>
       </Pressable>
@@ -108,7 +109,7 @@ export function PantallaRegistro({
 
       <Pressable
         accessibilityRole="button"
-        onPress={() => onEnviar({ correo, contrasena, privacidadAceptada })}
+        onPress={() => onEnviar({ correo, contrasena, confirmaEdadYPolitica })}
         style={estilos.boton}
       >
         <Text style={estilos.textoBoton}>Crear cuenta</Text>
