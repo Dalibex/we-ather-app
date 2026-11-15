@@ -1,6 +1,6 @@
 # Política de privacidad de WEather
 
-Última actualización: 12 de noviembre de 2026.
+Última actualización: 15 de noviembre de 2026.
 
 WEather te ayuda a moverte a pie por Málaga con el menor calor posible. Queremos que la uses sin
 preocuparte por tus datos: pedimos solo lo imprescindible, y nadie puede saber quién ha hecho un
@@ -66,7 +66,7 @@ externos de datos abiertos:
 
 | Servicio | Qué recibe | Por qué |
 | --- | --- | --- |
-| OpenStreetMap (imágenes del mapa) | Tu dirección IP y el tipo de dispositivo, porque la app descarga las imágenes del mapa directamente de sus servidores | Mostrarte el mapa de Málaga |
+| OpenStreetMap (imágenes del mapa) | Nada sobre ti: nuestro servidor descarga las imágenes del mapa de Málaga, las guarda y se las sirve a la app, así que OpenStreetMap no ve tu dirección IP | Mostrarte el mapa de Málaga |
 | Nominatim (OpenStreetMap) | El texto del origen y el destino, enviado por nuestro servidor, sin ningún dato de tu cuenta | Convertir lo que escribes en una posición del mapa |
 | Motor de rutas (OSRM) | Las coordenadas del origen y el destino, sin ningún dato de tu cuenta | Calcular las rutas |
 | Open-Meteo, AEMET y Ayuntamiento de Málaga | Nada sobre ti: solo les pedimos datos meteorológicos y urbanos | Estimar el calor de cada calle |
