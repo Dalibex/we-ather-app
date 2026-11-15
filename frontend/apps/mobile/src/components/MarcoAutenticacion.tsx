@@ -8,13 +8,14 @@ import { PatronBiznagas } from './PatronBiznagas';
 interface Props {
   titulo: string;
   subtitulo: string;
-  onVolver: () => void;
+  /** Si no se indica, no hay botón «Volver» (por ejemplo, en la primera pantalla). */
+  onVolver?: () => void;
   /** Campos y botones del formulario. */
   children: ReactNode;
 }
 
 /**
- * Marco común de las pantallas de registro e inicio de sesión: fondo de biznagas, botón «Volver»,
+ * Marco común de las pantallas de bienvenida, registro e inicio de sesión: fondo de biznagas, botón «Volver»,
  * tarjeta con el logotipo, el título y el formulario, y pie. Cuando aparece el teclado, sube el
  * contenido para que no tape los campos de abajo.
  */
@@ -53,14 +54,16 @@ export function MarcoAutenticacion({ titulo, subtitulo, onVolver, children }: Pr
     >
       <PatronBiznagas />
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Volver"
-        onPress={onVolver}
-        style={estilos.volver}
-      >
-        <Text style={estilos.enlace}>← Volver</Text>
-      </Pressable>
+      {onVolver && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Volver"
+          onPress={onVolver}
+          style={estilos.volver}
+        >
+          <Text style={estilos.enlace}>← Volver</Text>
+        </Pressable>
+      )}
 
       <View style={estilos.formulario}>
         <CabeceraLogo />
