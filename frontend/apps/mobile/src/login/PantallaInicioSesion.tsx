@@ -39,11 +39,6 @@ export function PantallaInicioSesion({ onEnviar, onVolver, onIrRegistro }: Props
   }, []);
 
   useEffect(() => {
-    // Desactivar animaciones durante los tests.
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
-
     const animacion = Animated.timing(desplazamiento, {
       toValue: tecladoVisible ? 1 : 0,
       duration: 500,

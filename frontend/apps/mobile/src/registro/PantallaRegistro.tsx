@@ -31,7 +31,7 @@ interface Props {
 }
 
 /** Pantalla de registro (HU-01): correo, contraseña y aceptación de la política de privacidad. */
-export function PantallaRegistro({ onEnviar, onVolver }: Props) {
+export function PantallaRegistro({ onEnviar, onVolver, onIniciarSesion }: Props) {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [privacidadAceptada, setPrivacidadAceptada] = useState(false);
@@ -55,11 +55,6 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
   }, []);
 
   useEffect(() => {
-    // No ejecutar animaciones durante los tests.
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
-
     const animacion = Animated.timing(desplazamiento, {
       toValue: tecladoVisible ? 1 : 0,
       duration: 500,
@@ -166,6 +161,18 @@ export function PantallaRegistro({ onEnviar, onVolver }: Props) {
         >
           <Text style={estilos.textoBoton}>Crear cuenta</Text>
         </Pressable>
+
+        <View style={estilosLocal.contenedorInicioSesion}>
+          <Text style={estilosLocal.textoInicioSesion}>¿Ya tienes cuenta?</Text>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Inicia sesión"
+            onPress={onIniciarSesion}
+            hitSlop={8}
+          >
+            <Text style={estilosLocal.inicioSesionDestacado}>Inicia sesión</Text>
+          </Pressable>
+        </View>
       </View>
 
       <Text style={estilos.pie}>PARA AGUANTAR LA CALOR</Text>
@@ -210,6 +217,22 @@ const estilosLocal = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: 24,
     paddingVertical: 4,
+  },
+  contenedorInicioSesion: {
+    alignItems: 'center',
+    columnGap: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  textoInicioSesion: {
+    color: '#718078',
+    fontSize: 12,
+  },
+  inicioSesionDestacado: {
+    color: '#304B43',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   enlacePoliticaTexto: {
     color: '#304B43',

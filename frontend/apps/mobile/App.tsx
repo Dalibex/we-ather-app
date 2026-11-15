@@ -15,13 +15,14 @@ export default function App() {
     <>
       {pantalla === 'registro' ? (
         <PantallaRegistro
-          onEnviar={(datos) => console.log('Registro:', datos)}
+          // Validar y enviar los datos llega con T-01.2, T-01.3 y T-02.3. Nunca se escriben en la consola.
+          onEnviar={() => {}}
           onVolver={() => setPantalla('inicio')}
           onIniciarSesion={() => setPantalla('login')}
         />
       ) : pantalla === 'login' ? (
         <PantallaInicioSesion
-          onEnviar={(datos) => console.log('Inicio de sesión:', datos)}
+          onEnviar={() => {}}
           onVolver={() => setPantalla('inicio')}
           onIrRegistro={() => setPantalla('registro')}
         />
