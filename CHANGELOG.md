@@ -29,5 +29,6 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - Política de privacidad en `docs/privacidad.md`: datos que se tratan, seudonimización de los
   reportes, servicios externos, plazos de conservación y bloqueo, derechos y edad mínima.
 - Pruebas de la app móvil con Jest y Testing Library (`pnpm test`).
-- App móvil: pantalla de inicio de sesión con campos de correo electrónico y contraseña, accesible desde la pantalla inicial  
-  mediante «Iniciar sesión». Incluye navegación entre inicio, registro e inicio de sesión y pruebas (HU-02, T-02.1). Todavía no autentica ni envía las credenciales al servidor.
+- App móvil: pantalla de inicio de sesión con correo y contraseña, accesible desde la pantalla
+  inicial con «Iniciar sesión». El registro y el inicio de sesión se enlazan entre sí y comparten
+  diseño. Todavía no autentica ni envía las credenciales al servidor (HU-02, T-02.1).

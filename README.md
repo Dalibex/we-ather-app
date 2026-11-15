@@ -18,7 +18,7 @@ implementa ninguna historia de usuario. No hay versión publicada.
 | Parte | Carpeta | Estado |
 | --- | --- | --- |
 | Servidor | `backend/` | Esqueleto: Spring Boot con PostgreSQL y PostGIS, solo el health check |
-| App móvil | `frontend/apps/mobile/` | Expo: pantalla inicial y pantalla de registro (sin validaciones ni conexión con el servidor) |
+| App móvil | `frontend/apps/mobile/` | Expo: pantalla inicial y pantallas de registro e inicio de sesión (sin validaciones ni conexión con el servidor) |
 | Panel de administración | `frontend/apps/web/` | Esqueleto: Vite y React con una pantalla inicial |
 
 ## Puesta en marcha
