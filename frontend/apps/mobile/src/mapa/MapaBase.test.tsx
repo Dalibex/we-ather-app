@@ -1,9 +1,12 @@
-import { render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
+import { animateToRegion } from '../../__mocks__/react-native-maps';
 
 import { MapaBase } from './MapaBase';
 
 describe('MapaBase', () => {
+  afterEach(() => animateToRegion.mockClear());
+
   it('abre el mapa centrado en Málaga', async () => {
     await render(<MapaBase />);
 
@@ -41,5 +44,45 @@ describe('MapaBase', () => {
     await render(<MapaBase />);
 
     expect(screen.getByTestId('mapa-base').props.mapPadding.bottom).toBe(48);
+  });
+
+  it('no deja alejar el mapa más allá de lo que ocupa Málaga', async () => {
+    await render(<MapaBase />);
+
+    expect(screen.getByTestId('mapa-base').props.minZoomLevel).toBe(11);
+  });
+
+  it('devuelve el mapa a Málaga si se arrastra fuera', async () => {
+    await render(<MapaBase />);
+
+    const madrid = {
+      latitude: 40.4168,
+      longitude: -3.7038,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    };
+    await act(() => screen.getByTestId('mapa-base').props.onRegionChangeComplete(madrid, {}));
+
+    expect(animateToRegion).toHaveBeenCalledTimes(1);
+    expect(animateToRegion).toHaveBeenCalledWith({
+      latitude: 36.85,
+      longitude: -4.25,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    });
+  });
+
+  it('no mueve el mapa mientras se navega dentro de Málaga', async () => {
+    await render(<MapaBase />);
+
+    const centro = {
+      latitude: 36.7213,
+      longitude: -4.4214,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
+    };
+    await act(() => screen.getByTestId('mapa-base').props.onRegionChangeComplete(centro, {}));
+
+    expect(animateToRegion).not.toHaveBeenCalled();
   });
 });
