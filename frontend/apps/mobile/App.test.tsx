@@ -1,6 +1,10 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { BackHandler } from 'react-native';
 
+jest.mock('expo-file-system/legacy', () => ({
+  cacheDirectory: 'file:///cache/',
+}));
+
 import App from './App';
 
 /** Simula el botón o gesto «atrás» de Android: llama al último manejador que registró la app. */

@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
 import MapView, { UrlTile, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +19,15 @@ const REGION_MALAGA: Region = {
 const TESELAS_OSM = `${URL_API}/api/v1/teselas/{z}/{x}/{y}.png`;
 /** Último nivel de zoom que sirve tile.openstreetmap.org. */
 const ZOOM_MAXIMO_OSM = 19;
+/** La app puede reutilizar las teselas durante el mismo plazo que el servidor. */
+const EDAD_MAXIMA_CACHE_TESELAS_SEGUNDOS = 7 * 24 * 60 * 60;
+const DIRECTORIO_CACHE = FileSystem.cacheDirectory;
+
+if (!DIRECTORIO_CACHE) {
+  throw new Error('No se pudo determinar el directorio de caché local de la aplicación.');
+}
+
+const DIRECTORIO_CACHE_TESELAS = `${DIRECTORIO_CACHE}teselas-mapa/`;
 
 /**
  * Mapa base de Málaga con teselas de OpenStreetMap, que se desplaza y amplía con gestos.
@@ -44,6 +54,9 @@ export function MapaBase() {
           urlTemplate={TESELAS_OSM}
           maximumZ={ZOOM_MAXIMO_OSM}
           shouldReplaceMapContent
+          tileCachePath={DIRECTORIO_CACHE_TESELAS}
+          tileCacheMaxAge={EDAD_MAXIMA_CACHE_TESELAS_SEGUNDOS}
+          offlineMode={false}
         />
       </MapView>
       <Atribucion margenInferior={margenes.bottom} />

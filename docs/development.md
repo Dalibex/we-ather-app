@@ -107,6 +107,11 @@ dirección se configura en `frontend/apps/mobile/.env` (copia `.env.example`), p
 
 Tras cambiar `.env`, reinicia Expo.
 
+La app conserva localmente las teselas que ya ha mostrado en el directorio de caché del dispositivo.
+Al volver a solicitar una tesela guardada hace más de siete días, la muestra mientras intenta
+actualizarla; las teselas que aún no tiene se siguen pidiendo al servidor. El sistema operativo
+puede borrar esta caché si necesita espacio.
+
 Comprobaciones, las mismas que el job `frontend` de la CI:
 
 | Comando | Qué hace |
