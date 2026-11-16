@@ -24,7 +24,7 @@
 		<spotless.version>3.11.0</spotless.version>
 		<google-java-format.version>1.35.0</google-java-format.version>
 		<!-- Ejecuta git para instalar el hook de pre-commit -->
-		<exec-maven-plugin.version>3.6.4</exec-maven-plugin.version>
+		<exec-maven-plugin.version>3.7.0</exec-maven-plugin.version>
 
 		<!-- Pruebas. -DskipUTs=true salta las unitarias (*Test) y mantiene las de integración (*IT) -->
 		<skipUTs>false</skipUTs>
