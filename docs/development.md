@@ -114,7 +114,7 @@ puede borrar esta caché si necesita espacio.
 
 Comprobaciones, las mismas que el job `frontend` de la CI:
 
-| Comando | Qué hace | 
+| Comando | Qué hace |
 | --- | --- |
 | `pnpm format:check` | Comprueba el formato con Prettier (`pnpm format` lo corrige) |
 | `pnpm lint` | ESLint |
