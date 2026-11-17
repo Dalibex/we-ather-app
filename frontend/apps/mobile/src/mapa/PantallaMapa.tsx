@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Buscador } from '../buscador/Buscador';
 import { colores } from '../theme/colores';
 import { MapaBase } from './MapaBase';
 
@@ -9,7 +10,10 @@ interface Props {
   onIniciarSesion: () => void;
 }
 
-/** Pantalla del mapa: el mapa base de Málaga y un botón pequeño para iniciar sesión. */
+/**
+ * Pantalla del mapa: el mapa base de Málaga, un botón pequeño para iniciar sesión y, debajo, el
+ * buscador de origen y destino.
+ */
 export function PantallaMapa({ onIniciarSesion }: Props) {
   const margenes = useSafeAreaInsets();
 
@@ -24,6 +28,10 @@ export function PantallaMapa({ onIniciarSesion }: Props) {
       >
         <Text style={estilos.textoBoton}>Iniciar sesión</Text>
       </Pressable>
+      <View style={[estilos.buscador, { top: margenes.top + 52 }]}>
+        {/* Buscar las direcciones y calcular la ruta llega con T-07.2, T-07.3 y T-07.4. */}
+        <Buscador onBuscar={() => {}} />
+      </View>
     </View>
   );
 }
@@ -42,6 +50,11 @@ const estilos = StyleSheet.create({
     position: 'absolute',
     // A la izquierda: arriba a la derecha va la brújula del mapa en iOS, y abajo, la atribución.
     left: 12,
+  },
+  buscador: {
+    left: 12,
+    position: 'absolute',
+    right: 12,
   },
   textoBoton: {
     color: colores.verde,
