@@ -9,4 +9,6 @@ export const colores = {
   borde: '#D7D9D1',
   blanco: '#FFFFFF',
   verde: '#304B43',
+  // Mensajes de error del formulario; también cumple WCAG AA sobre la tarjeta y el fondo.
+  error: '#B3261E',
 } as const;
