@@ -111,6 +111,129 @@ describe('PantallaRegistro', () => {
     expect(screen.getByLabelText('Correo electrónico').props.value).toBe('persona@example.com');
   });
 
+  describe('validaciones', () => {
+    async function rellenar({
+      correo = 'persona@example.com',
+      contrasena = 'contraseña-de-prueba',
+      marcarCasilla = true,
+    } = {}) {
+      await fireEvent.changeText(screen.getByLabelText('Correo electrónico'), correo);
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), contrasena);
+      if (marcarCasilla) await fireEvent.press(screen.getByRole('checkbox', { name: CASILLA }));
+    }
+
+    const crearCuenta = () => fireEvent.press(screen.getByRole('button', { name: 'Crear cuenta' }));
+
+    it('no muestra errores antes de pulsar crear cuenta', async () => {
+      await renderPantalla();
+
+      await rellenar({ correo: 'persona', contrasena: '123', marcarCasilla: false });
+
+      expect(screen.queryByRole('alert')).not.toBeOnTheScreen();
+    });
+
+    it('no llama a onEnviar y muestra todos los errores si el formulario está vacío', async () => {
+      const onEnviar = jest.fn();
+      await renderPantalla({ onEnviar });
+
+      await crearCuenta();
+
+      expect(onEnviar).not.toHaveBeenCalled();
+      expect(screen.getByText('Escribe tu correo electrónico')).toBeOnTheScreen();
+      expect(screen.getByText('Escribe una contraseña')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'Para crear la cuenta, confirma que tienes 14 años o más y que has leído la política',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('rechaza un correo con formato incorrecto', async () => {
+      const onEnviar = jest.fn();
+      await renderPantalla({ onEnviar });
+
+      await rellenar({ correo: 'persona@example' });
+      await crearCuenta();
+
+      expect(onEnviar).not.toHaveBeenCalled();
+      expect(
+        screen.getByText('Escribe un correo válido, como nombre@dominio.com'),
+      ).toBeOnTheScreen();
+    });
+
+    it('rechaza una contraseña de menos de 8 caracteres', async () => {
+      const onEnviar = jest.fn();
+      await renderPantalla({ onEnviar });
+
+      await rellenar({ contrasena: '1234567' });
+      await crearCuenta();
+
+      expect(onEnviar).not.toHaveBeenCalled();
+      expect(screen.getByText('La contraseña debe tener al menos 8 caracteres')).toBeOnTheScreen();
+    });
+
+    it('no deja crear la cuenta sin marcar la casilla de privacidad', async () => {
+      const onEnviar = jest.fn();
+      await renderPantalla({ onEnviar });
+
+      await rellenar({ marcarCasilla: false });
+      await crearCuenta();
+
+      expect(onEnviar).not.toHaveBeenCalled();
+      expect(
+        screen.getByText(
+          'Para crear la cuenta, confirma que tienes 14 años o más y que has leído la política',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('anuncia los errores al lector de pantalla', async () => {
+      await renderPantalla();
+
+      await crearCuenta();
+
+      expect(screen.getAllByRole('alert')).toHaveLength(3);
+    });
+
+    it('borra el error de cada campo en cuanto el usuario lo corrige', async () => {
+      await renderPantalla();
+      await crearCuenta();
+
+      await fireEvent.changeText(screen.getByLabelText('Correo electrónico'), 'p');
+      expect(screen.queryByText('Escribe tu correo electrónico')).not.toBeOnTheScreen();
+
+      await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'c');
+      expect(screen.queryByText('Escribe una contraseña')).not.toBeOnTheScreen();
+
+      await fireEvent.press(screen.getByRole('checkbox', { name: CASILLA }));
+      expect(screen.queryByRole('alert')).not.toBeOnTheScreen();
+    });
+
+    it('envía el correo sin los espacios del principio ni del final', async () => {
+      const onEnviar = jest.fn();
+      await renderPantalla({ onEnviar });
+
+      await rellenar({ correo: '  persona@example.com ' });
+      await crearCuenta();
+
+      expect(onEnviar).toHaveBeenCalledWith(
+        expect.objectContaining({ correo: 'persona@example.com' }),
+      );
+    });
+
+    it('envía los datos tras corregir los errores', async () => {
+      const onEnviar = jest.fn();
+      await renderPantalla({ onEnviar });
+      await crearCuenta();
+
+      await rellenar();
+      await crearCuenta();
+
+      expect(onEnviar).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('alert')).not.toBeOnTheScreen();
+    });
+  });
+
   it('avisa a onCambiarCorreo cada vez que cambia el correo', async () => {
     const onCambiarCorreo = jest.fn();
     await renderPantalla({ onCambiarCorreo });
