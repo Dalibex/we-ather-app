@@ -24,7 +24,7 @@
 		<spotless.version>3.11.0</spotless.version>
 		<google-java-format.version>1.35.0</google-java-format.version>
 		<!-- Ejecuta git para instalar el hook de pre-commit -->
-		<exec-maven-plugin.version>3.6.4</exec-maven-plugin.version>
+		<exec-maven-plugin.version>3.7.0</exec-maven-plugin.version>
 
 		<!-- Pruebas. -DskipUTs=true salta las unitarias (*Test) y mantiene las de integración (*IT) -->
 		<skipUTs>false</skipUTs>
@@ -118,7 +118,7 @@
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>mockwebserver</artifactId>
-			<version>4.12.0</version>
+			<version>5.5.1</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- Testcontainers: las pruebas de integración (*IT) arrancan su propio PostGIS, con la misma
