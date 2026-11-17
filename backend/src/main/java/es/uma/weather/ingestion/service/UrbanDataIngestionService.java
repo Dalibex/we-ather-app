@@ -4,12 +4,16 @@ import es.uma.weather.heatmap.config.HeatIngestionProperties;
 import es.uma.weather.shared.proveedores.LimitadorPeticiones;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.support.TransactionOperations;
 import org.springframework.web.client.RestClient;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -19,9 +23,26 @@ import tools.jackson.databind.json.JsonMapper;
 public class UrbanDataIngestionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UrbanDataIngestionService.class);
+
+    private static final String UPSERT_SEGMENT_SQL =
+            """
+            INSERT INTO street_segments (osm_way_id, highway, name, geom, updated_at)
+            VALUES (?, ?, ?, ST_GeomFromText(?, 4326), NOW())
+            ON CONFLICT (osm_way_id) DO UPDATE SET
+                highway = EXCLUDED.highway,
+                name = EXCLUDED.name,
+                geom = EXCLUDED.geom,
+                updated_at = NOW()
+            """;
+
+    /** Retira los tramos cuya vía no ha llegado en la carga: ya no está en OpenStreetMap. */
+    private static final String DELETE_MISSING_SEGMENTS_SQL =
+            "DELETE FROM street_segments WHERE osm_way_id <> ALL (?)";
+
     private final RestClient restClient;
     private final JsonMapper objectMapper;
     private final JdbcTemplate jdbcTemplate;
+    private final TransactionOperations transactionOperations;
     private final HeatIngestionProperties properties;
     private final LimitadorPeticiones limitadorPeticiones;
 
@@ -29,69 +50,126 @@ public class UrbanDataIngestionService {
             RestClient.Builder restClientBuilder,
             JsonMapper objectMapper,
             JdbcTemplate jdbcTemplate,
+            TransactionOperations transactionOperations,
             HeatIngestionProperties properties,
             LimitadorPeticiones limitadorPeticiones) {
         this.restClient = restClientBuilder.build();
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionOperations = transactionOperations;
         this.properties = properties;
         this.limitadorPeticiones = limitadorPeticiones;
     }
 
+    /**
+     * Sustituye las calles guardadas por las que devuelve Overpass.
+     *
+     * <p>Solo una respuesta completa y con vías cambia la tabla, y lo hace entera o nada: en una
+     * transacción guarda todas las vías y retira las que ya no están en OpenStreetMap. En cualquier
+     * otro caso se conservan las calles anteriores.
+     *
+     * @return tramos guardados, o 0 si no se ha actualizado nada
+     */
     public int ingest() {
         LOGGER.info("Iniciando ingesta de calles de OpenStreetMap");
         if (!limitadorPeticiones.permitir("overpass")) {
             LOGGER.warn("Límite de peticiones a Overpass alcanzado: no se actualizan las calles");
             return 0;
         }
+        JsonNode response = readResponse(fetchStreets());
+
+        // Si la consulta se queda sin tiempo o sin memoria, Overpass responde 200 igualmente, con
+        // «remark» y solo parte de las vías.
+        String remark = response.path("remark").asString("");
+        if (!remark.isBlank()) {
+            LOGGER.warn(
+                    "Overpass ha devuelto una respuesta incompleta ({}): se conservan las calles"
+                            + " anteriores",
+                    remark);
+            return 0;
+        }
+        List<StreetSegment> segments = toSegments(response.path("elements"));
+        // Una carga sin vías nunca es Málaga, y retirar las que faltan las borraría todas.
+        if (segments.isEmpty()) {
+            LOGGER.warn(
+                    "Overpass no ha devuelto ninguna vía válida: se conservan las calles anteriores");
+            return 0;
+        }
+
+        // La petición a Overpass queda fuera de la transacción, para no retener una conexión a la
+        // base de datos mientras se espera su respuesta.
+        try {
+            transactionOperations.executeWithoutResult(status -> replaceSegments(segments));
+        } catch (DataAccessException | TransactionException exception) {
+            throw new IllegalStateException(
+                    "No se pudieron guardar las calles de Overpass", exception);
+        }
+        LOGGER.info("Ingesta de OpenStreetMap terminada: {} tramos guardados", segments.size());
+        return segments.size();
+    }
+
+    private String fetchStreets() {
         String query =
                 "[out:json][timeout:60];way[\"highway\"]("
                         + properties.overpassBbox()
                         + ");out geom;";
         String form = "data=" + URLEncoder.encode(query, StandardCharsets.UTF_8);
-        String response =
-                restClient
-                        .post()
-                        .uri(properties.overpassUrl())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                        .body(form)
-                        .retrieve()
-                        .body(String.class);
+        return restClient
+                .post()
+                .uri(properties.overpassUrl())
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(form)
+                .retrieve()
+                .body(String.class);
+    }
 
+    private JsonNode readResponse(String response) {
         try {
-            JsonNode elements = objectMapper.readTree(response).path("elements");
-            int saved = 0;
-            for (JsonNode element : elements) {
-                if (!"way".equals(element.path("type").asString())) continue;
-                JsonNode geometry = element.path("geometry");
-                if (!geometry.isArray() || geometry.size() < 2) continue;
-                String wkt = toLineString(geometry);
-                if (wkt == null) continue;
-                long osmId = element.path("id").asLong();
-                String highway = element.path("tags").path("highway").asString("unknown");
-                String name = element.path("tags").path("name").asString(null);
-                jdbcTemplate.update(
-                        """
-                        INSERT INTO street_segments (osm_way_id, highway, name, geom, updated_at)
-                        VALUES (?, ?, ?, ST_GeomFromText(?, 4326), NOW())
-                        ON CONFLICT (osm_way_id) DO UPDATE SET
-                            highway = EXCLUDED.highway,
-                            name = EXCLUDED.name,
-                            geom = EXCLUDED.geom,
-                            updated_at = NOW()
-                        """,
-                        osmId,
-                        highway,
-                        name,
-                        wkt);
-                saved++;
-            }
-            LOGGER.info("Ingesta de OpenStreetMap terminada: {} tramos guardados", saved);
-            return saved;
-        } catch (DataAccessException | JacksonException exception) {
+            return objectMapper.readTree(response);
+        } catch (JacksonException exception) {
             throw new IllegalStateException(
                     "No se pudo procesar la respuesta de Overpass", exception);
         }
+    }
+
+    private List<StreetSegment> toSegments(JsonNode elements) {
+        List<StreetSegment> segments = new ArrayList<>();
+        for (JsonNode element : elements) {
+            if (!"way".equals(element.path("type").asString())) continue;
+            JsonNode geometry = element.path("geometry");
+            if (!geometry.isArray() || geometry.size() < 2) continue;
+            String wkt = toLineString(geometry);
+            if (wkt == null) continue;
+            segments.add(
+                    new StreetSegment(
+                            element.path("id").asLong(),
+                            element.path("tags").path("highway").asString("unknown"),
+                            element.path("tags").path("name").asString(null),
+                            wkt));
+        }
+        return segments;
+    }
+
+    private void replaceSegments(List<StreetSegment> segments) {
+        for (StreetSegment segment : segments) {
+            jdbcTemplate.update(
+                    UPSERT_SEGMENT_SQL,
+                    segment.osmWayId(),
+                    segment.highway(),
+                    segment.name(),
+                    segment.wkt());
+        }
+        Long[] osmWayIds = segments.stream().map(StreetSegment::osmWayId).toArray(Long[]::new);
+        int retired =
+                jdbcTemplate.update(
+                        DELETE_MISSING_SEGMENTS_SQL,
+                        statement ->
+                                statement.setArray(
+                                        1,
+                                        statement
+                                                .getConnection()
+                                                .createArrayOf("bigint", osmWayIds)));
+        LOGGER.info("Retirados {} tramos que ya no están en OpenStreetMap", retired);
     }
 
     private String toLineString(JsonNode geometry) {
@@ -113,4 +191,7 @@ public class UrbanDataIngestionService {
         }
         return wkt.append(')').toString();
     }
+
+    /** Un tramo de calle leído de Overpass, listo para guardarse. */
+    private record StreetSegment(long osmWayId, String highway, String name, String wkt) {}
 }
