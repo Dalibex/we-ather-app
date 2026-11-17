@@ -1,6 +1,7 @@
 package es.uma.weather.ingestion.service;
 
 import es.uma.weather.heatmap.config.HeatIngestionProperties;
+import es.uma.weather.shared.proveedores.LimitadorPeticiones;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
@@ -22,20 +23,27 @@ public class UrbanDataIngestionService {
     private final JsonMapper objectMapper;
     private final JdbcTemplate jdbcTemplate;
     private final HeatIngestionProperties properties;
+    private final LimitadorPeticiones limitadorPeticiones;
 
     public UrbanDataIngestionService(
             RestClient.Builder restClientBuilder,
             JsonMapper objectMapper,
             JdbcTemplate jdbcTemplate,
-            HeatIngestionProperties properties) {
+            HeatIngestionProperties properties,
+            LimitadorPeticiones limitadorPeticiones) {
         this.restClient = restClientBuilder.build();
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
         this.properties = properties;
+        this.limitadorPeticiones = limitadorPeticiones;
     }
 
-    public void ingest() {
+    public int ingest() {
         LOGGER.info("Iniciando ingesta de calles de OpenStreetMap");
+        if (!limitadorPeticiones.permitir("overpass")) {
+            LOGGER.warn("Límite de peticiones a Overpass alcanzado: no se actualizan las calles");
+            return 0;
+        }
         String query =
                 "[out:json][timeout:60];way[\"highway\"]("
                         + properties.overpassBbox()
@@ -79,6 +87,7 @@ public class UrbanDataIngestionService {
                 saved++;
             }
             LOGGER.info("Ingesta de OpenStreetMap terminada: {} tramos guardados", saved);
+            return saved;
         } catch (DataAccessException | JacksonException exception) {
             throw new IllegalStateException(
                     "No se pudo procesar la respuesta de Overpass", exception);

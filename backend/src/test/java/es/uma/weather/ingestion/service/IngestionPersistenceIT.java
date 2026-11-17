@@ -127,7 +127,7 @@ class IngestionPersistenceIT {
 
     @Test
     void ingestaMeteorologicaPersisteDatosYGeografiaEnPostgis() throws InterruptedException {
-        weatherIngestionService.ingest();
+        assertThat(weatherIngestionService.ingest()).isEqualTo(1);
 
         RecordedRequest request = MOCK_WEB_SERVER.takeRequest(1, TimeUnit.SECONDS);
         assertThat(request).isNotNull();
@@ -158,7 +158,7 @@ class IngestionPersistenceIT {
 
     @Test
     void ingestaUrbanaPersisteLaGeometriaLineStringEnPostgis() throws InterruptedException {
-        urbanDataIngestionService.ingest();
+        assertThat(urbanDataIngestionService.ingest()).isEqualTo(1);
 
         RecordedRequest request = MOCK_WEB_SERVER.takeRequest(1, TimeUnit.SECONDS);
         assertThat(request).isNotNull();

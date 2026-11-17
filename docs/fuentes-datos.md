@@ -39,7 +39,7 @@ La consulta utiliza la zona horaria `Europe/Madrid`. Cada punto se consulta medi
 - **Almacenamiento:** los segmentos se guardan en PostgreSQL/PostGIS como geometrías espaciales.
 - **Frecuencia propuesta:** una actualización cada siete días.
 
-Se propone una frecuencia menor que la meteorológica porque los datos de calles cambian menos habitualmente y Overpass es un servicio compartido.
+La consulta actual no solicita `cloud_cover`. Se utiliza la radiación solar de onda corta (`shortwave_radiation`), que ya refleja el efecto de la nubosidad sobre la radiación que llega a la superficie; no se almacena una variable independiente de cobertura nubosa en esta iteración.
 
 ## 3. Procedimiento de obtención
 
@@ -68,15 +68,17 @@ Se establecen las siguientes frecuencias objetivo:
 
 **Estado actual:** las ingestas están implementadas y pueden ejecutarse manualmente mediante los endpoints indicados. La ejecución periódica automática todavía no está implementada.
 
-La incorporación de un planificador automático queda pendiente de aprobación y planificación en una iteración posterior. Las frecuencias de actualización han sido consensuadas con el Product Owner: una hora para los datos meteorológicos y siete días para los datos urbanos.
+La incorporación de un planificador automático queda pendiente de aprobación y planificación en una iteración posterior. Las frecuencias indicadas son propuestas pendientes de confirmación por el Product Owner: una hora para los datos meteorológicos y siete días para los datos urbanos.
 
 ## 5. Gestión de errores y uso responsable
 
-- Las peticiones a fuentes externas deben contemplar errores de conexión, respuestas HTTP no satisfactorias y respuestas con formato no válido.
-- Se deben evitar consultas innecesarias a Overpass, al tratarse de un servicio compartido.
-- Las consultas deben limitarse al área geográfica y a las variables necesarias para la aplicación.
-- Los errores de ingesta deben quedar registrados para facilitar su diagnóstico.
-- Se debe evitar que una respuesta externa incompleta o inválida se almacene como si fuera información correcta.
+- En Open-Meteo se exige que temperatura, humedad, viento, radiación, UV, hora de observación y desfase UTC estén presentes y tengan el tipo esperado. Los campos numéricos ausentes o nulos provocan el rechazo de ese punto; no se convierten implícitamente en `0.0`.
+- La ingesta meteorológica procesa cada punto de forma independiente: si una respuesta falla o está incompleta, no se guarda esa observación y se conserva la última observación válida ya almacenada.
+- Antes de cada petición, ambos servicios consultan `LimitadorPeticiones`, configurado en `weather.proveedores.limites`. Si se alcanza el límite de Open-Meteo, se omite ese punto; si se alcanza el de Overpass, no se solicita la actualización urbana.
+- Overpass tiene un límite provisional configurado de dos peticiones por día, pendiente de confirmación por el Product Owner.
+- Los errores por punto quedan registrados en el log. Las respuestas HTTP no satisfactorias o no procesables no deben generar observaciones válidas.
+- Los servicios devuelven el número de registros guardados. Los endpoints manuales responden `200` con estado `completed` si guardan al menos un registro y `503` con estado `failed` si no se guarda ninguno.
+- Las consultas se limitan al área geográfica y a las variables necesarias para la aplicación.
 
 ## 6. Licencias y atribución
 

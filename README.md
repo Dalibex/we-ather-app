@@ -12,12 +12,12 @@ Proyecto del grupo NeoForge.
 ## Estado actual
 
 El proyecto está en su fase inicial: el repositorio tiene su base (documentación, plantillas e
-integración continua) y el esqueleto de cada parte, que arranca y pasa la CI pero todavía no
-implementa ninguna historia de usuario. No hay versión publicada.
+integración continua) y el esqueleto de cada parte. Ya incorpora algunas funcionalidades iniciales, pero todavía no
+implementa todas las historias de usuario. No hay versión publicada.
 
 | Parte | Carpeta | Estado |
 | --- | --- | --- |
-| Servidor | `backend/` | Spring Boot con PostgreSQL y PostGIS: health check y teselas del mapa base de Málaga, con caché |
+| Servidor | `backend/` | Spring Boot con PostgreSQL y PostGIS: health check, teselas del mapa base de Málaga con caché e ingesta manual de los datos del mapa de calor (Open-Meteo y OpenStreetMap) |
 | App móvil | `frontend/apps/mobile/` | Expo con el mapa base de Málaga como pantalla principal; las teselas de OpenStreetMap las pide al servidor |
 | Panel de administración | `frontend/apps/web/` | Esqueleto: Vite y React con una pantalla inicial |
 

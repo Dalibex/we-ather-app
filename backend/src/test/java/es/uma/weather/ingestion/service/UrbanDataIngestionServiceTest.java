@@ -10,7 +10,12 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import es.uma.weather.heatmap.config.HeatIngestionProperties;
+import es.uma.weather.shared.proveedores.LimitadorPeticiones;
+import es.uma.weather.shared.proveedores.Limite;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -37,7 +42,13 @@ class UrbanDataIngestionServiceTest {
                         List.of());
         service =
                 new UrbanDataIngestionService(
-                        builder, JsonMapper.builder().build(), jdbcTemplate, properties);
+                        builder,
+                        JsonMapper.builder().build(),
+                        jdbcTemplate,
+                        properties,
+                        new LimitadorPeticiones(
+                                Map.of("overpass", new Limite(100, Duration.ofDays(1))),
+                                Clock.systemUTC()));
     }
 
     @Test
@@ -92,5 +103,35 @@ class UrbanDataIngestionServiceTest {
 
         server.verify();
         verify(jdbcTemplate, never()).update(anyString(), any(Object[].class));
+    }
+
+    @Test
+    void respetaElLimiteDePeticionesDeOverpass() {
+        RestClient.Builder limitedBuilder = RestClient.builder();
+        MockRestServiceServer limitedServer = MockRestServiceServer.bindTo(limitedBuilder).build();
+        HeatIngestionProperties limitedProperties =
+                new HeatIngestionProperties(
+                        "https://open-meteo.test",
+                        "https://overpass.test/api/interpreter",
+                        "36.6,-4.6,36.8,-4.3",
+                        List.of());
+        UrbanDataIngestionService limitedService =
+                new UrbanDataIngestionService(
+                        limitedBuilder,
+                        JsonMapper.builder().build(),
+                        jdbcTemplate,
+                        limitedProperties,
+                        new LimitadorPeticiones(
+                                Map.of("overpass", new Limite(1, Duration.ofDays(1))),
+                                Clock.systemUTC()));
+        limitedServer
+                .expect(requestTo("https://overpass.test/api/interpreter"))
+                .andRespond(
+                        withSuccess(
+                                "{\"elements\":[]}",
+                                org.springframework.http.MediaType.APPLICATION_JSON));
+        limitedService.ingest();
+        org.junit.jupiter.api.Assertions.assertEquals(0, limitedService.ingest());
+        limitedServer.verify();
     }
 }

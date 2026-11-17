@@ -36,3 +36,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   (T-20.2).
 - Servidor: límite de peticiones por proveedor de datos externo, configurado en
   `weather.proveedores.limites` de `application.yaml` (T-20.2).
+- Servidor: ingesta manual de los datos del mapa de calor. `POST /api/ingestion/weather` guarda el
+  tiempo de cinco puntos de Málaga (Open-Meteo) y `POST /api/ingestion/urban` guarda las calles
+  (OpenStreetMap, Overpass), las dos con autenticación. `GET /api/heatmap` devuelve la última
+  observación de cada punto. Fuentes y frecuencias en `docs/fuentes-datos.md` (T-17.1).

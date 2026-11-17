@@ -3,6 +3,7 @@ package es.uma.weather.ingestion.service;
 import es.uma.weather.heatmap.config.HeatIngestionProperties;
 import es.uma.weather.heatmap.config.HeatIngestionProperties.GridPoint;
 import es.uma.weather.heatmap.service.HeatScoreCalculator;
+import es.uma.weather.shared.proveedores.LimitadorPeticiones;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -26,21 +27,24 @@ public class WeatherIngestionService {
     private final JdbcTemplate jdbcTemplate;
     private final HeatIngestionProperties properties;
     private final HeatScoreCalculator heatScoreCalculator;
+    private final LimitadorPeticiones limitadorPeticiones;
 
     public WeatherIngestionService(
             RestClient.Builder restClientBuilder,
             JsonMapper objectMapper,
             JdbcTemplate jdbcTemplate,
             HeatIngestionProperties properties,
-            HeatScoreCalculator heatScoreCalculator) {
+            HeatScoreCalculator heatScoreCalculator,
+            LimitadorPeticiones limitadorPeticiones) {
         this.restClient = restClientBuilder.build();
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
         this.properties = properties;
         this.heatScoreCalculator = heatScoreCalculator;
+        this.limitadorPeticiones = limitadorPeticiones;
     }
 
-    public void ingest() {
+    public int ingest() {
         LOGGER.info("Iniciando ingesta meteorológica de {} puntos", properties.points().size());
         int successful = 0;
         for (GridPoint point : properties.points()) {
@@ -60,9 +64,13 @@ public class WeatherIngestionService {
                 "Ingesta meteorológica terminada: {}/{} puntos actualizados",
                 successful,
                 properties.points().size());
+        return successful;
     }
 
     private void ingestPoint(GridPoint point) throws Exception {
+        if (!limitadorPeticiones.permitir("open-meteo")) {
+            throw new IllegalStateException("Límite de peticiones a Open-Meteo alcanzado");
+        }
         URI requestUri =
                 UriComponentsBuilder.fromUriString(properties.openMeteoUrl())
                         .queryParam("latitude", point.latitude())
@@ -76,19 +84,22 @@ public class WeatherIngestionService {
 
         JsonNode root = objectMapper.readTree(body);
         JsonNode current = root.path("current");
-        if (current.isMissingNode() || current.path("temperature_2m").isMissingNode()) {
-            throw new IllegalStateException("La respuesta no contiene datos current válidos");
+        double temperature = requireNumber(current, "temperature_2m");
+        double humidity = requireNumber(current, "relative_humidity_2m");
+        double wind = requireNumber(current, "wind_speed_10m");
+        JsonNode offsetNode = root.path("utc_offset_seconds");
+        JsonNode timeNode = current.path("time");
+        if (!offsetNode.isNumber() || !timeNode.isString()) {
+            throw new IllegalStateException("Open-Meteo no ha devuelto la hora de la observación");
         }
-
-        double temperature = current.path("temperature_2m").asDouble();
-        double humidity = current.path("relative_humidity_2m").asDouble();
-        double wind = current.path("wind_speed_10m").asDouble();
-        int utcOffset = root.path("utc_offset_seconds").asInt(0);
-        LocalDateTime localTime = LocalDateTime.parse(current.path("time").asString());
-        int hourlyIndex = findHourlyIndex(root.path("hourly").path("time"), localTime);
+        int utcOffset = offsetNode.asInt();
+        LocalDateTime localTime = LocalDateTime.parse(timeNode.asString());
         JsonNode hourly = root.path("hourly");
-        double radiation = hourly.path("shortwave_radiation").path(hourlyIndex).asDouble(0.0);
-        double uv = hourly.path("uv_index").path(hourlyIndex).asDouble(0.0);
+        int hourlyIndex = findHourlyIndex(hourly.path("time"), localTime);
+        double radiation =
+                requireNumber(
+                        hourly.path("shortwave_radiation"), hourlyIndex, "shortwave_radiation");
+        double uv = requireNumber(hourly.path("uv_index"), hourlyIndex, "uv_index");
         // OffsetDateTime, not Instant: the PostgreSQL driver cannot bind an Instant.
         var observedAt = localTime.atOffset(ZoneOffset.ofTotalSeconds(utcOffset));
         double score = heatScoreCalculator.calculate(temperature, humidity, wind, radiation);
@@ -130,6 +141,24 @@ public class WeatherIngestionService {
                 point.latitude());
 
         LOGGER.debug("Punto {} guardado con exposición {} ({})", point.name(), score, level);
+    }
+
+    private static double requireNumber(JsonNode node, String field) {
+        JsonNode value = node.path(field);
+        if (!value.isNumber()) {
+            throw new IllegalStateException(
+                    "Open-Meteo no ha devuelto un valor numérico en " + field);
+        }
+        return value.asDouble();
+    }
+
+    private static double requireNumber(JsonNode array, int index, String field) {
+        JsonNode value = array.path(index);
+        if (!value.isNumber()) {
+            throw new IllegalStateException(
+                    "Open-Meteo no ha devuelto un valor numérico en " + field);
+        }
+        return value.asDouble();
     }
 
     private int findHourlyIndex(JsonNode times, LocalDateTime currentTime) {

@@ -4,6 +4,9 @@ Closes #
 
 ## Cómo se ha probado
 
+- Ejecutar desde `backend/`: `.\mvnw verify` (incluye pruebas unitarias y de integración con PostgreSQL/PostGIS mediante Testcontainers).
+- `git diff --check`.
+
 ## Definition of Done
 
 - [ ] Desarrollada con TDD: las pruebas nuevas están en verde en local.

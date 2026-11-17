@@ -3,6 +3,8 @@ package es.uma.weather.ingestion.controller;
 import es.uma.weather.ingestion.service.UrbanDataIngestionService;
 import es.uma.weather.ingestion.service.WeatherIngestionService;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,14 +24,22 @@ public class ManualIngestionController {
     }
 
     @PostMapping("/weather")
-    public Map<String, String> ingestWeather() {
-        weatherIngestionService.ingest();
-        return Map.of("status", "completed", "source", "Open-Meteo");
+    public ResponseEntity<Map<String, Object>> ingestWeather() {
+        return result(weatherIngestionService.ingest(), "Open-Meteo");
     }
 
     @PostMapping("/urban")
-    public Map<String, String> ingestUrban() {
-        urbanDataIngestionService.ingest();
-        return Map.of("status", "completed", "source", "OpenStreetMap Overpass");
+    public ResponseEntity<Map<String, Object>> ingestUrban() {
+        return result(urbanDataIngestionService.ingest(), "OpenStreetMap Overpass");
+    }
+
+    private static ResponseEntity<Map<String, Object>> result(int saved, String source) {
+        HttpStatus status = saved > 0 ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
+        return ResponseEntity.status(status)
+                .body(
+                        Map.of(
+                                "status", saved > 0 ? "completed" : "failed",
+                                "source", source,
+                                "saved", saved));
     }
 }

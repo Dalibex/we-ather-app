@@ -17,8 +17,8 @@ class SecurityConfig {
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
-                // Manual ingestion is triggered by scripts or admins, not by browser forms, so
-                // CSRF protection does not apply there. The rest of the API keeps the default.
+                // Manual ingestion requires an authenticated user. Restricting it to admins will be
+                // addressed with HU-02; browser-form CSRF protection remains disabled for this API.
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/ingestion/**"))
                 .httpBasic(Customizer.withDefaults());
         return http.build();

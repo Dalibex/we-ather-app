@@ -2,6 +2,7 @@ package es.uma.weather.shared.security;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,9 +31,11 @@ class ManualIngestionSecurityTest {
     @Test
     @WithMockUser
     void unPostAutenticadoLanzaLaIngestaMeteorologica() throws Exception {
+        when(weatherIngestionService.ingest()).thenReturn(1);
         mvc.perform(post("/api/ingestion/weather"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("completed"));
+                .andExpect(jsonPath("$.status").value("completed"))
+                .andExpect(jsonPath("$.saved").value(1));
 
         verify(weatherIngestionService).ingest();
     }
