@@ -1,9 +1,11 @@
+import { useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapView, { UrlTile, type Region } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Atribucion } from '../atribucion/Atribucion';
 import { URL_API } from '../config';
+import { ZOOM_MINIMO_MALAGA, ajustarAMalaga } from './limiteMalaga';
 
 /** Vista inicial: el centro de Málaga, con unos 5 km de alto. */
 const REGION_MALAGA: Region = {
@@ -26,16 +28,30 @@ const ZOOM_MAXIMO_OSM = 19;
  * que solo se vean las teselas de OSM. Encima va la atribución de los proveedores de datos, que se
  * coloca, igual que el logo del mapa del sistema, por encima de los botones de navegación del móvil
  * para que se lea y se pueda pulsar.
+ *
+ * La navegación se limita a Málaga: no se puede alejar más allá de lo que ocupa la ciudad y, si se
+ * arrastra fuera, el mapa vuelve al borde de Málaga al soltarlo.
  */
 export function MapaBase() {
   const margenes = useSafeAreaInsets();
+  const mapa = useRef<MapView>(null);
+
+  function mantenerEnMalaga(region: Region) {
+    const ajustada = ajustarAMalaga(region);
+    if (ajustada !== region) {
+      mapa.current?.animateToRegion(ajustada);
+    }
+  }
 
   return (
     <View style={styles.contenedor}>
       <MapView
+        ref={mapa}
         testID="mapa-base"
         style={styles.mapa}
         initialRegion={REGION_MALAGA}
+        minZoomLevel={ZOOM_MINIMO_MALAGA}
+        onRegionChangeComplete={mantenerEnMalaga}
         mapType="none"
         mapPadding={{ top: margenes.top, right: 0, bottom: margenes.bottom, left: 0 }}
       >
