@@ -31,6 +31,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   OpenStreetMap bloquea las peticiones directas desde Android (T-05.2).
 - App móvil: la atribución de OpenStreetMap y el logo del mapa se colocan por encima de los botones
   de navegación del sistema, para que se lean y se puedan pulsar (T-05.2).
+- App móvil: el mapa se limita a Málaga. No se puede alejar más allá de lo que ocupa la ciudad y,
+  si se arrastra fuera, vuelve al borde de Málaga al soltarlo (T-05.3).
 - App móvil: el mapa muestra la atribución de todos los proveedores de datos (OpenStreetMap,
   Open-Meteo, AEMET y Ayuntamiento de Málaga), cada una enlazada a su licencia o a su web
   (T-20.2).
