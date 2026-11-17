@@ -18,7 +18,7 @@ implementa todas las historias de usuario. No hay versión publicada.
 | Parte | Carpeta | Estado |
 | --- | --- | --- |
 | Servidor | `backend/` | Spring Boot con PostgreSQL y PostGIS: health check, teselas del mapa base de Málaga con caché e ingesta manual de los datos del mapa de calor (Open-Meteo y OpenStreetMap) |
-| App móvil | `frontend/apps/mobile/` | Expo con el mapa base de Málaga como pantalla principal; las teselas de OpenStreetMap las pide al servidor |
+| App móvil | `frontend/apps/mobile/` | Expo: bienvenida, registro e inicio de sesión (sin validaciones ni conexión con el servidor) y mapa base de Málaga, al que se llega sin cuenta; las teselas de OpenStreetMap las pide al servidor |
 | Panel de administración | `frontend/apps/web/` | Esqueleto: Vite y React con una pantalla inicial |
 
 ## Puesta en marcha
@@ -41,6 +41,9 @@ cd frontend && pnpm install && pnpm dev:web
 - [Diagrama Tropos](docs/ESQUEMA_TROPOS.png): dependencias entre actores y objetivos.
 - [Práctica 3-6: Gestión](docs/PDF%20Entregados/Pr%C3%A1ctica%203-6%20Gesti%C3%B3n.pdf):
   priorización, planificación del Sprint 1, métricas y proceso Scrum.
+- [Política de privacidad](docs/privacidad.md): qué datos trata la app, durante cuánto tiempo y
+  cómo ejercer tus derechos.
+- [Atribuciones](docs/atribuciones.md): recursos de terceros que usa la app y su autoría.
 - [Desarrollo local](docs/development.md): requisitos, arranque y comprobaciones.
 - [Grabaciones de los Scrum Meetings](docs/dailys/README.md): dónde están y cómo pedir acceso.
 

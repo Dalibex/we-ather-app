@@ -27,7 +27,7 @@ indicaciones paso a paso en texto.
   (OpenStreetMap, Open-Meteo, AEMET, Ayuntamiento de Málaga) y con los reportes validados de los
   usuarios. Ese mapa de calor es interno: solo lo usa el cálculo de rutas, no se muestra.
 - Los usuarios registrados envían reportes (valoración de 1 a 5 y comentario de texto o voz) sobre
-  un punto del mapa. Se guardan anonimizados y solo los validados ajustan el mapa de calor, durante
+  un punto del mapa. Se guardan seudonimizados y solo los validados ajustan el mapa de calor, durante
   un tiempo limitado.
 - Los administradores revisan los reportes dudosos, los retiran y bloquean usuarios.
 
@@ -49,6 +49,7 @@ Restricciones que no se negocian:
 | Priorización, planificación del sprint y proceso Scrum | `docs/PDF Entregados/Práctica 3-6 Gestión.pdf`; lo que afecta al día a día está resumido en `CONTRIBUTING.md` |
 | Qué hay que hacer y en qué sprint | Las issues de historia de usuario (`[HU-XX]`) y sus tareas (`[T-XX.n]`), con su milestone |
 | Arranque local y comandos | `docs/development.md` |
+| Qué datos personales se tratan, plazos y derechos (lo que se promete al usuario) | `docs/privacidad.md` |
 | Roles, eventos, flujo de trabajo, ramas, commits, PRs y Definition of Done | `CONTRIBUTING.md` |
 | Integración continua y sus jobs | `.github/workflows/ci.yml`, `.github/workflows/pr-title.yml` |
 | Cambios por versión | `CHANGELOG.md` |
