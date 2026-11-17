@@ -74,6 +74,7 @@ La incorporación de un planificador automático queda pendiente de aprobación 
 
 - En Open-Meteo se exige que temperatura, humedad, viento, radiación, UV, hora de observación y desfase UTC estén presentes y tengan el tipo esperado. Los campos numéricos ausentes o nulos provocan el rechazo de ese punto; no se convierten implícitamente en `0.0`.
 - La ingesta meteorológica procesa cada punto de forma independiente: si una respuesta falla o está incompleta, no se guarda esa observación y se conserva la última observación válida ya almacenada.
+- La ingesta urbana sustituye las calles enteras o no cambia nada. Overpass responde `200` aunque la consulta se quede sin tiempo o sin memoria, y lo indica con el campo `remark`; esa respuesta incompleta se descarta, igual que una sin ninguna vía válida, y se conservan las calles anteriores. Una respuesta completa se guarda en una sola transacción, que también retira las vías que ya no están en OpenStreetMap; si algo falla, se deshace y quedan las calles anteriores.
 - Antes de cada petición, ambos servicios consultan `LimitadorPeticiones`, configurado en `weather.proveedores.limites`. Si se alcanza el límite de Open-Meteo, se omite ese punto; si se alcanza el de Overpass, no se solicita la actualización urbana.
 - Overpass tiene un límite provisional configurado de dos peticiones por día, pendiente de confirmación por el Product Owner.
 - Los errores por punto quedan registrados en el log. Las respuestas HTTP no satisfactorias o no procesables no deben generar observaciones válidas.

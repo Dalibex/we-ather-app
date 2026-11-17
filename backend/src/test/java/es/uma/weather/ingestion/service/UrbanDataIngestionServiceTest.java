@@ -1,11 +1,13 @@
 package es.uma.weather.ingestion.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.transaction.support.TransactionOperations;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -45,6 +48,7 @@ class UrbanDataIngestionServiceTest {
                         builder,
                         JsonMapper.builder().build(),
                         jdbcTemplate,
+                        TransactionOperations.withoutTransaction(),
                         properties,
                         new LimitadorPeticiones(
                                 Map.of("overpass", new Limite(100, Duration.ofDays(1))),
@@ -106,6 +110,44 @@ class UrbanDataIngestionServiceTest {
     }
 
     @Test
+    void noGuardaNadaSiOverpassDevuelveUnaRespuestaParcial() {
+        // Si la consulta se queda sin tiempo, Overpass responde 200 con «remark» y solo parte de
+        // las vías.
+        server.expect(requestTo("https://overpass.test/api/interpreter"))
+                .andRespond(
+                        withSuccess(
+                                """
+                                {"remark":"runtime error: Query timed out after 61 seconds.",
+                                 "elements":[
+                                  {"type":"way","id":12347,
+                                   "tags":{"highway":"residential"},
+                                   "geometry":[{"lat":36.72,"lon":-4.42},{"lat":36.721,"lon":-4.421}]}
+                                ]}
+                                """,
+                                org.springframework.http.MediaType.APPLICATION_JSON));
+
+        assertEquals(0, service.ingest());
+
+        server.verify();
+        verifyNoInteractions(jdbcTemplate);
+    }
+
+    @Test
+    void noTocaLasCallesSiOverpassNoDevuelveNingunaVia() {
+        // Una respuesta sin vías nunca es Málaga: retirar las que faltan las borraría todas.
+        server.expect(requestTo("https://overpass.test/api/interpreter"))
+                .andRespond(
+                        withSuccess(
+                                "{\"elements\":[]}",
+                                org.springframework.http.MediaType.APPLICATION_JSON));
+
+        assertEquals(0, service.ingest());
+
+        server.verify();
+        verifyNoInteractions(jdbcTemplate);
+    }
+
+    @Test
     void respetaElLimiteDePeticionesDeOverpass() {
         RestClient.Builder limitedBuilder = RestClient.builder();
         MockRestServiceServer limitedServer = MockRestServiceServer.bindTo(limitedBuilder).build();
@@ -120,6 +162,7 @@ class UrbanDataIngestionServiceTest {
                         limitedBuilder,
                         JsonMapper.builder().build(),
                         jdbcTemplate,
+                        TransactionOperations.withoutTransaction(),
                         limitedProperties,
                         new LimitadorPeticiones(
                                 Map.of("overpass", new Limite(1, Duration.ofDays(1))),

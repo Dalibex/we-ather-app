@@ -1,9 +1,11 @@
 package es.uma.weather.ingestion.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import es.uma.weather.TestcontainersConfiguration;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
@@ -53,6 +55,8 @@ class IngestionPersistenceIT {
         registry.add("weather.heat.points[0].name", () -> "Integration point");
         registry.add("weather.heat.points[0].latitude", () -> "36.72");
         registry.add("weather.heat.points[0].longitude", () -> "-4.42");
+        // Varias pruebas llaman a Overpass más de una vez; el límite real (2 al día) las cortaría.
+        registry.add("weather.proveedores.limites.overpass.max-peticiones", () -> "100");
     }
 
     @AfterAll
@@ -60,10 +64,20 @@ class IngestionPersistenceIT {
         MOCK_WEB_SERVER.shutdown();
     }
 
+    /**
+     * Lo que responde el falso Overpass; cada prueba puede cambiarlo antes de llamar a la ingesta.
+     */
+    private volatile String overpassResponse;
+
     @BeforeEach
-    void cleanDatabaseAndConfigureHttpResponses() {
+    void cleanDatabaseAndConfigureHttpResponses() throws InterruptedException {
         jdbcTemplate.update("DELETE FROM weather_observations");
         jdbcTemplate.update("DELETE FROM street_segments");
+        // Descarta las peticiones que dejaron otras pruebas, para que cada una vea solo las suyas.
+        while (MOCK_WEB_SERVER.takeRequest(0, TimeUnit.MILLISECONDS) != null) {
+            // nada: solo se vacía la cola
+        }
+        overpassResponse = respuesta(via(987654L, "residential", "Calle de prueba"));
 
         MOCK_WEB_SERVER.setDispatcher(
                 new Dispatcher() {
@@ -99,25 +113,7 @@ class IngestionPersistenceIT {
                             return new MockResponse()
                                     .setResponseCode(200)
                                     .setHeader("Content-Type", "application/json")
-                                    .setBody(
-                                            """
-                                            {
-                                              "elements": [
-                                                {
-                                                  "type": "way",
-                                                  "id": 987654,
-                                                  "tags": {
-                                                    "highway": "residential",
-                                                    "name": "Calle de prueba"
-                                                  },
-                                                  "geometry": [
-                                                    {"lat": 36.72, "lon": -4.42},
-                                                    {"lat": 36.721, "lon": -4.421}
-                                                  ]
-                                                }
-                                              ]
-                                            }
-                                            """);
+                                    .setBody(overpassResponse);
                         }
 
                         return new MockResponse().setResponseCode(404);
@@ -174,5 +170,69 @@ class IngestionPersistenceIT {
                 .containsEntry("highway", "residential")
                 .containsEntry("name", "Calle de prueba")
                 .containsEntry("wkt", "LINESTRING(-4.42 36.72,-4.421 36.721)");
+    }
+
+    @Test
+    void ingestaUrbanaRetiraLasViasQueYaNoEstanEnOpenStreetMap() {
+        overpassResponse =
+                respuesta(
+                        via(1L, "residential", "Calle que desaparece"),
+                        via(2L, "residential", "Calle que sigue"));
+        assertThat(urbanDataIngestionService.ingest()).isEqualTo(2);
+
+        overpassResponse = respuesta(via(2L, "residential", "Calle que sigue"));
+        assertThat(urbanDataIngestionService.ingest()).isEqualTo(1);
+
+        assertThat(viasGuardadas()).containsExactly(2L);
+    }
+
+    @Test
+    void ingestaUrbanaParcialConservaLasCallesAnteriores() {
+        assertThat(urbanDataIngestionService.ingest()).isEqualTo(1);
+
+        // Overpass responde 200 aunque la consulta se quede sin tiempo: lo indica con «remark».
+        overpassResponse =
+                """
+                {"remark": "runtime error: Query timed out after 61 seconds.", "elements": [%s]}
+                """
+                        .formatted(via(2L, "residential", "Calle a medias"));
+        assertThat(urbanDataIngestionService.ingest()).isZero();
+
+        assertThat(viasGuardadas()).containsExactly(987654L);
+    }
+
+    @Test
+    void ingestaUrbanaQueFallaAMitadConservaLasCallesAnteriores() {
+        assertThat(urbanDataIngestionService.ingest()).isEqualTo(1);
+
+        // «highway» admite 50 caracteres: la segunda vía falla después de actualizar la primera.
+        overpassResponse =
+                respuesta(
+                        via(987654L, "residential", "Calle renombrada"),
+                        via(2L, "x".repeat(51), "Calle con un tipo demasiado largo"));
+        assertThatThrownBy(urbanDataIngestionService::ingest)
+                .isInstanceOf(IllegalStateException.class);
+
+        assertThat(jdbcTemplate.queryForList("SELECT name FROM street_segments", String.class))
+                .containsExactly("Calle de prueba");
+    }
+
+    /** Una vía de Overpass con su geometría, dentro de Málaga. */
+    private static String via(long id, String highway, String name) {
+        return """
+                {"type": "way", "id": %d, "tags": {"highway": "%s", "name": "%s"},
+                 "geometry": [{"lat": 36.72, "lon": -4.42}, {"lat": 36.721, "lon": -4.421}]}
+                """
+                .formatted(id, highway, name);
+    }
+
+    /** Respuesta completa de Overpass con las vías indicadas. */
+    private static String respuesta(String... vias) {
+        return "{\"elements\": [" + String.join(",", vias) + "]}";
+    }
+
+    private List<Long> viasGuardadas() {
+        return jdbcTemplate.queryForList(
+                "SELECT osm_way_id FROM street_segments ORDER BY osm_way_id", Long.class);
     }
 }
