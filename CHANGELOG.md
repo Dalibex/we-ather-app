@@ -40,3 +40,18 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   tiempo de cinco puntos de Málaga (Open-Meteo) y `POST /api/ingestion/urban` guarda las calles
   (OpenStreetMap, Overpass), las dos con autenticación. `GET /api/heatmap` devuelve la última
   observación de cada punto. Fuentes y frecuencias en `docs/fuentes-datos.md` (T-17.1).
+- App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
+  «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
+  (T-01.1).
+- App móvil: pantalla de registro con correo, contraseña y la confirmación de tener 14 años o más y
+  haber leído la política de privacidad, con un enlace para leerla. Todavía no valida ni envía los
+  datos (HU-01, T-01.1).
+- App móvil: pantalla de inicio de sesión con correo y contraseña. Todavía no autentica ni envía las
+  credenciales al servidor (HU-02, T-02.1).
+- App móvil: el registro y el inicio de sesión se enlazan entre sí y conservan el correo escrito al
+  pasar de una a otra; el botón o gesto «atrás» de Android vuelve a la pantalla anterior; el
+  formulario se desplaza si no cabe y se aparta del teclado.
+- Política de privacidad en `docs/privacidad.md`: datos que se tratan, seudonimización de los
+  reportes, servicios externos (OpenStreetMap no recibe la IP del usuario, porque el servidor sirve
+  las teselas), plazos de conservación y bloqueo, derechos y edad mínima.
+- Atribuciones de los recursos de terceros en `docs/atribuciones.md`.
