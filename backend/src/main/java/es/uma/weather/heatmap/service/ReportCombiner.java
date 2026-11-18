@@ -3,8 +3,10 @@ package es.uma.weather.heatmap.service;
 import es.uma.weather.heatmap.config.ReportProperties;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 /** Ajusta el calor estimado de cada zona con los reportes validados y vigentes de sus usuarios. */
+@Component
 public class ReportCombiner {
 
     private final ReportProperties properties;
