@@ -41,6 +41,16 @@ La consulta utiliza la zona horaria `Europe/Madrid`. Cada punto se consulta medi
 
 La consulta actual no solicita `cloud_cover`. Se utiliza la radiación solar de onda corta (`shortwave_radiation`), que ya refleja el efecto de la nubosidad sobre la radiación que llega a la superficie; no se almacena una variable independiente de cobertura nubosa en esta iteración.
 
+### 2.3. Reportes de los usuarios
+
+- **Fuente:** los reportes que envían los usuarios registrados, con una valoración de sensación térmica de 1 (fresco) a 5 (mucho calor) sobre un punto de Málaga.
+- **Qué reportes cuentan:** solo los validados y vigentes. El algoritmo de combinación los recibe sin autor, identificador ni hora.
+- **Combinación** (`ReportCombiner`, T-17.3):
+  - Cada reporte cuenta en la zona más cercana de las que recibe el algoritmo (con T-17.4, los puntos de `weather.heat.points`). En caso de empate, cuenta en la primera.
+  - Su valoración se pasa a la escala 0-100 del índice de exposición: `s = (valoración − 1) · 25`.
+  - El calor de la zona se ajusta con una media ponderada, redondeada a un decimal: `(k · estimación + Σ s) / (k + n)`. Aquí `n` es el número de reportes de la zona y `k` (`weather.reportes.peso-estimacion`, fijado a 5 en `application.yaml`) indica cuántos reportes equivalentes vale la estimación meteorológica. Un reporte aislado no arrastra la zona; muchos reportes coherentes sí la mueven. Con `k` igual o menor que 0 (o si falta la propiedad), la aplicación no arranca.
+- **Pendiente:** guardar los reportes (T-12.2), filtrar los validados y vigentes (T-19.2) y aplicar la combinación en la generación periódica del mapa de calor (T-17.4). El sentido de la escala, el reparto por zona más cercana y el valor de `k` están pendientes de confirmación por el Product Owner.
+
 ## 3. Procedimiento de obtención
 
 El backend implementa dos servicios de ingesta:
