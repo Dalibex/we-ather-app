@@ -57,3 +57,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   reportes, servicios externos (OpenStreetMap no recibe la IP del usuario, porque el servidor sirve
   las teselas), plazos de conservación y bloqueo, derechos y edad mínima.
 - Atribuciones de los recursos de terceros en `docs/atribuciones.md`.
+- Servidor: `GET /api/lugares?q=<texto>`, público, convierte un texto en una lista de lugares
+  (`nombre`, `lat`, `lon`) buscándolo en Nominatim. Respeta su política de uso: se identifica con
+  su `User-Agent`, hace como máximo una petición por segundo y guarda las búsquedas para no
+  repetirlas. El texto buscado no se registra en los logs (T-07.2).

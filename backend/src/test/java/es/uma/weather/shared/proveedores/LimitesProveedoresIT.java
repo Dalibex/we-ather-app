@@ -20,10 +20,13 @@ class LimitesProveedoresIT {
         var limites = properties.limites();
 
         assertThat(limites)
-                .containsOnlyKeys("open-meteo", "aemet", "ayuntamiento-malaga", "overpass")
+                .containsOnlyKeys(
+                        "open-meteo", "aemet", "ayuntamiento-malaga", "overpass", "nominatim")
                 .containsEntry("open-meteo", new Limite(300, Duration.ofHours(1)))
                 .containsEntry("aemet", new Limite(40, Duration.ofHours(1)))
-                .containsEntry("ayuntamiento-malaga", new Limite(40, Duration.ofHours(1)));
+                .containsEntry("ayuntamiento-malaga", new Limite(40, Duration.ofHours(1)))
+                // Política de uso de Nominatim: como máximo una petición por segundo.
+                .containsEntry("nominatim", new Limite(1, Duration.ofSeconds(1)));
 
         assertThat(limites.get("overpass").maxPeticiones()).isEqualTo(2);
         assertThat(limites.get("overpass").ventana()).isEqualTo(Duration.ofDays(1));

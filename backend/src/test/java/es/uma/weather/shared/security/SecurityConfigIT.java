@@ -10,7 +10,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** El health check y las teselas del mapa son públicos; el resto de rutas pide autenticación. */
+/**
+ * El health check, las teselas del mapa y la búsqueda de lugares son públicos; el resto de rutas
+ * pide autenticación.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(es.uma.weather.TestcontainersConfiguration.class)
@@ -27,6 +30,12 @@ class SecurityConfigIT {
     @Test
     void lasTeselasDelMapaSonPublicas() throws Exception {
         mvc.perform(get("/api/v1/teselas/13/4011/3088.png")).andExpect(status().isNotFound());
+    }
+
+    // Sin texto se rechaza con 400 sin llegar a preguntar a Nominatim.
+    @Test
+    void laBusquedaDeLugaresEsPublica() throws Exception {
+        mvc.perform(get("/api/lugares")).andExpect(status().isBadRequest());
     }
 
     @Test

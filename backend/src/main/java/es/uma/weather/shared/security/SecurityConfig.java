@@ -13,7 +13,10 @@ class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/actuator/health/**", "/api/v1/teselas/**")
+                                auth.requestMatchers(
+                                                "/actuator/health/**",
+                                                "/api/v1/teselas/**",
+                                                "/api/lugares")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
