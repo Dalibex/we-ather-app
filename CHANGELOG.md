@@ -40,6 +40,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   `weather.proveedores.limites` de `application.yaml` (T-20.2).
 - App móvil: el mapa muestra un buscador con los campos Origen y Destino y el botón «Buscar ruta»,
   que solo se activa con los dos rellenos. Todavía no busca las direcciones (T-07.1).
+- Servidor: ingesta manual de los datos del mapa de calor. `POST /api/ingestion/weather` guarda el
+  tiempo de cinco puntos de Málaga (Open-Meteo) y `POST /api/ingestion/urban` guarda las calles
+  (OpenStreetMap, Overpass), las dos con autenticación. `GET /api/heatmap` devuelve la última
+  observación de cada punto. Fuentes y frecuencias en `docs/fuentes-datos.md` (T-17.1).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).
