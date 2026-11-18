@@ -51,6 +51,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - App móvil: pantalla de registro con correo, contraseña y la confirmación de tener 14 años o más y
   haber leído la política de privacidad, con un enlace para leerla. Todavía no valida ni envía los
   datos (HU-01, T-01.1).
+- App móvil: el registro valida el formulario al pulsar «Crear cuenta»: un correo con formato
+  correcto, una contraseña de al menos 8 caracteres y la casilla de edad y política marcada. Los
+  errores aparecen bajo cada campo, el lector de pantalla los anuncia y desaparecen al corregir el
+  campo. Si el correo ya está registrado lo dirá el servidor (HU-01, T-01.3).
 - App móvil: pantalla de inicio de sesión con correo y contraseña. Todavía no autentica ni envía las
   credenciales al servidor (HU-02, T-02.1).
 - App móvil: el registro y el inicio de sesión se enlazan entre sí y conservan el correo escrito al
