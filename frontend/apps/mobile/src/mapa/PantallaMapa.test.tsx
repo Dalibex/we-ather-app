@@ -1,5 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+jest.mock('expo-file-system/legacy', () => ({
+  cacheDirectory: 'file:///cache/',
+}));
+
 import { PantallaMapa } from './PantallaMapa';
 
 describe('PantallaMapa', () => {

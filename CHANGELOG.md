@@ -31,6 +31,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   OpenStreetMap bloquea las peticiones directas desde Android (T-05.2).
 - App móvil: la atribución de OpenStreetMap y el logo del mapa se colocan por encima de los botones
   de navegación del sistema, para que se lean y se puedan pulsar (T-05.2).
+- App móvil: guarda localmente las teselas; al volver a solicitar una que tenga más de siete días,
+  la muestra mientras intenta actualizarla. Errores HTTP no pisan teselas válidas y Android limita
+  los reintentos automáticos de fallos de red (T-05.4).
 - App móvil: el mapa se limita a Málaga. No se puede alejar más allá de lo que ocupa la ciudad y,
   si se arrastra fuera, vuelve al borde de Málaga al soltarlo (T-05.3).
 - App móvil: el mapa muestra la atribución de todos los proveedores de datos (OpenStreetMap,
