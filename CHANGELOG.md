@@ -34,11 +34,17 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - App móvil: guarda localmente las teselas; al volver a solicitar una que tenga más de siete días,
   la muestra mientras intenta actualizarla. Errores HTTP no pisan teselas válidas y Android limita
   los reintentos automáticos de fallos de red (T-05.4).
+- App móvil: el mapa se limita a Málaga. No se puede alejar más allá de lo que ocupa la ciudad y,
+  si se arrastra fuera, vuelve al borde de Málaga al soltarlo (T-05.3).
 - App móvil: el mapa muestra la atribución de todos los proveedores de datos (OpenStreetMap,
   Open-Meteo, AEMET y Ayuntamiento de Málaga), cada una enlazada a su licencia o a su web
   (T-20.2).
 - Servidor: límite de peticiones por proveedor de datos externo, configurado en
   `weather.proveedores.limites` de `application.yaml` (T-20.2).
+- Servidor: ingesta manual de los datos del mapa de calor. `POST /api/ingestion/weather` guarda el
+  tiempo de cinco puntos de Málaga (Open-Meteo) y `POST /api/ingestion/urban` guarda las calles
+  (OpenStreetMap, Overpass), las dos con autenticación. `GET /api/heatmap` devuelve la última
+  observación de cada punto. Fuentes y frecuencias en `docs/fuentes-datos.md` (T-17.1).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).
