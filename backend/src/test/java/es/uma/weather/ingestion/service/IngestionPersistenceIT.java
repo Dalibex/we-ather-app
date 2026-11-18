@@ -1,10 +1,10 @@
 package es.uma.weather.ingestion.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import es.uma.weather.TestcontainersConfiguration;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.Dispatcher;
@@ -57,6 +57,8 @@ class IngestionPersistenceIT {
         registry.add("weather.heat.points[0].longitude", () -> "-4.42");
         // Varias pruebas llaman a Overpass más de una vez; el límite real (2 al día) las cortaría.
         registry.add("weather.proveedores.limites.overpass.max-peticiones", () -> "100");
+        // Corto, para que la prueba del proveedor que no responde no tarde.
+        registry.add("spring.http.clients.read-timeout", () -> "1s");
     }
 
     @AfterAll
@@ -69,6 +71,9 @@ class IngestionPersistenceIT {
      */
     private volatile String overpassResponse;
 
+    /** Si es cierto, el falso Open-Meteo tarda más que el tiempo máximo de lectura. */
+    private volatile boolean openMeteoNoResponde;
+
     @BeforeEach
     void cleanDatabaseAndConfigureHttpResponses() throws InterruptedException {
         jdbcTemplate.update("DELETE FROM weather_observations");
@@ -78,6 +83,7 @@ class IngestionPersistenceIT {
             // nada: solo se vacía la cola
         }
         overpassResponse = respuesta(via(987654L, "residential", "Calle de prueba"));
+        openMeteoNoResponde = false;
 
         MOCK_WEB_SERVER.setDispatcher(
                 new Dispatcher() {
@@ -88,6 +94,7 @@ class IngestionPersistenceIT {
 
                         if ("/v1/forecast".equals(path)) {
                             return new MockResponse()
+                                    .setHeadersDelay(openMeteoNoResponde ? 5 : 0, TimeUnit.SECONDS)
                                     .setResponseCode(200)
                                     .setHeader("Content-Type", "application/json")
                                     .setBody(
@@ -98,7 +105,8 @@ class IngestionPersistenceIT {
                                                 "time": "2026-07-20T12:00",
                                                 "temperature_2m": 34.0,
                                                 "relative_humidity_2m": 45,
-                                                "wind_speed_10m": 8.0
+                                                "wind_speed_10m": 8.0,
+                                                "cloud_cover": 20
                                               },
                                               "hourly": {
                                                 "time": ["2026-07-20T11:00", "2026-07-20T12:00"],
@@ -134,7 +142,7 @@ class IngestionPersistenceIT {
                 jdbcTemplate.queryForMap(
                         """
                         SELECT source, grid_name, temperature_c, relative_humidity_pct,
-                               shortwave_radiation_wm2, uv_index, heat_score,
+                               cloud_cover_pct, shortwave_radiation_wm2, uv_index, heat_score,
                                ST_X(location::geometry) AS longitude,
                                ST_Y(location::geometry) AS latitude
                         FROM weather_observations
@@ -144,12 +152,29 @@ class IngestionPersistenceIT {
                 .containsEntry("source", "OPEN_METEO")
                 .containsEntry("grid_name", "Integration point");
         assertThat(((Number) observation.get("temperature_c")).doubleValue()).isEqualTo(34.0);
+        assertThat(((Number) observation.get("cloud_cover_pct")).doubleValue()).isEqualTo(20.0);
         assertThat(((Number) observation.get("shortwave_radiation_wm2")).doubleValue())
                 .isEqualTo(700.0);
         assertThat(((Number) observation.get("uv_index")).doubleValue()).isEqualTo(7.0);
         assertThat(((Number) observation.get("longitude")).doubleValue()).isEqualTo(-4.42);
         assertThat(((Number) observation.get("latitude")).doubleValue()).isEqualTo(36.72);
         assertThat(((Number) observation.get("heat_score")).doubleValue()).isBetween(0.0, 100.0);
+    }
+
+    @Test
+    void ingestaMeteorologicaNoSeQuedaEsperandoAUnProveedorQueNoResponde() {
+        openMeteoNoResponde = true;
+
+        long inicio = System.nanoTime();
+        int guardadas = weatherIngestionService.ingest();
+        Duration espera = Duration.ofNanos(System.nanoTime() - inicio);
+
+        assertThat(guardadas).isZero();
+        assertThat(espera).isLessThan(Duration.ofSeconds(4));
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                "SELECT COUNT(*) FROM weather_observations", Long.class))
+                .isZero();
     }
 
     @Test
@@ -210,8 +235,7 @@ class IngestionPersistenceIT {
                 respuesta(
                         via(987654L, "residential", "Calle renombrada"),
                         via(2L, "x".repeat(51), "Calle con un tipo demasiado largo"));
-        assertThatThrownBy(urbanDataIngestionService::ingest)
-                .isInstanceOf(IllegalStateException.class);
+        assertThat(urbanDataIngestionService.ingest()).isZero();
 
         assertThat(jdbcTemplate.queryForList("SELECT name FROM street_segments", String.class))
                 .containsExactly("Calle de prueba");

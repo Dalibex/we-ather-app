@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -41,6 +42,7 @@ class WeatherIngestionServiceTest {
                         "https://api.open-meteo.test/v1/forecast",
                         "https://overpass.test/api/interpreter",
                         "36.6,-4.6,36.8,-4.3",
+                        "WEather/test",
                         List.of(new GridPoint("Centro", 36.72, -4.42)));
         service =
                 new WeatherIngestionService(
@@ -57,6 +59,8 @@ class WeatherIngestionServiceTest {
     @Test
     void descargaDatosMeteorologicosYGuardaLaObservacion() {
         server.expect(requestTo(org.hamcrest.Matchers.containsString("latitude=36.72")))
+                .andExpect(requestTo(org.hamcrest.Matchers.containsString("cloud_cover")))
+                .andExpect(header("User-Agent", "WEather/test"))
                 .andRespond(
                         withSuccess(
                                 """
@@ -66,7 +70,8 @@ class WeatherIngestionServiceTest {
                                     "time": "2026-07-20T12:00",
                                     "temperature_2m": 34.0,
                                     "relative_humidity_2m": 45,
-                                    "wind_speed_10m": 8.0
+                                    "wind_speed_10m": 8.0,
+                                    "cloud_cover": 20
                                   },
                                   "hourly": {
                                     "time": ["2026-07-20T11:00", "2026-07-20T12:00", "2026-07-20T13:00"],
@@ -91,6 +96,7 @@ class WeatherIngestionServiceTest {
                         eq(34.0),
                         eq(45.0),
                         eq(8.0),
+                        eq(20.0),
                         eq(700.0),
                         eq(7.0),
                         any(),
@@ -118,6 +124,7 @@ class WeatherIngestionServiceTest {
         "temperature_2m,34.0",
         "relative_humidity_2m,45",
         "wind_speed_10m,8.0",
+        "cloud_cover,20",
         "shortwave_radiation,700",
         "uv_index,7"
     })
@@ -130,6 +137,7 @@ class WeatherIngestionServiceTest {
         "temperature_2m,34.0",
         "relative_humidity_2m,45",
         "wind_speed_10m,8.0",
+        "cloud_cover,20",
         "shortwave_radiation,700",
         "uv_index,7"
     })
@@ -142,7 +150,7 @@ class WeatherIngestionServiceTest {
                 """
                 {"utc_offset_seconds":3600,
                  "current":{"time":"2026-07-20T12:00","temperature_2m":34.0,
-                 "relative_humidity_2m":45,"wind_speed_10m":8.0},
+                 "relative_humidity_2m":45,"wind_speed_10m":8.0,"cloud_cover":20},
                  "hourly":{"time":["2026-07-20T11:00","2026-07-20T12:00","2026-07-20T13:00"],
                  "shortwave_radiation":[500,700,900],"uv_index":[5,7,9]}}
                 """;
@@ -214,6 +222,7 @@ class WeatherIngestionServiceTest {
                         "https://api.open-meteo.test/v1/forecast",
                         "https://overpass.test/api/interpreter",
                         "36.6,-4.6,36.8,-4.3",
+                        "WEather/test",
                         List.of(new GridPoint("Centro", 36.72, -4.42)));
         WeatherIngestionService limitedService =
                 new WeatherIngestionService(
