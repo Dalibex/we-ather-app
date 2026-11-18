@@ -1,0 +1,172 @@
+diff --git a/android/src/main/java/com/rnmaps/maps/MapTileWorker.java b/android/src/main/java/com/rnmaps/maps/MapTileWorker.java
+index ed94cb59db72cae2126e9f4a316541cfe6833b61..343c22e87e707c7d2e01cb3b4c0d64b7d7cd13af 100644
+--- a/android/src/main/java/com/rnmaps/maps/MapTileWorker.java
++++ b/android/src/main/java/com/rnmaps/maps/MapTileWorker.java
+@@ -15,11 +15,13 @@ import java.io.InputStream;
+ import java.io.OutputStream;
+ import java.io.IOException;
+ 
++import java.net.HttpURLConnection;
+ import java.net.MalformedURLException;
+ import java.net.URL;
+  
+ public class MapTileWorker extends Worker {
+ 	private static final int BUFFER_SIZE = 16 * 1024;
++	private static final int MAX_AUTOMATIC_RETRIES = 3;
+ 
+ 	public MapTileWorker(
+ 			@NonNull Context context,
+@@ -51,14 +53,26 @@ public class MapTileWorker extends Worker {
+       throw new AssertionError(e);
+     }
+ 
+-		image = fetchTile(url);
+-		if (image != null) {
++		try {
++			image = fetchTile(url);
++		} catch (NonSuccessfulResponseException e) {
++			Log.w("urlTile", "Tile request returned HTTP " + e.getStatusCode());
++			return Result.failure();
++		} catch (IOException e) {
++			Log.w("urlTile", "Tile request failed", e);
++			return retryOrFail();
++		} catch (OutOfMemoryError e) {
++			Log.e("urlTile", "Not enough memory to fetch tile", e);
++			return Result.failure();
++		}
++
++		if (image != null && image.length > 0) {
+ 			boolean success = writeTileImage(image, fileName);
+ 			if (!success) {
+ 				return Result.failure();
+ 			}
+     } else {
+-			return Result.retry();
++			return Result.failure();
+ 		}
+ 
+ 		// Indicate whether the work finished successfully with the Result
+@@ -66,31 +80,50 @@ public class MapTileWorker extends Worker {
+ 		return Result.success();
+ 	}
+ 
+-	private byte[] fetchTile(URL url) {
+-      ByteArrayOutputStream buffer = null;
+-      InputStream in = null;
++	private byte[] fetchTile(URL url) throws IOException {
++		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
++		try {
++			int statusCode = connection.getResponseCode();
++			if (statusCode < HttpURLConnection.HTTP_OK
++					|| statusCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
++				throw new NonSuccessfulResponseException(statusCode);
++			}
++
++			try (InputStream in = connection.getInputStream();
++					ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
++				int nRead;
++				byte[] data = new byte[BUFFER_SIZE];
++				while ((nRead = in.read(data, 0, BUFFER_SIZE)) != -1) {
++					buffer.write(data, 0, nRead);
++				}
++				buffer.flush();
++				return buffer.toByteArray();
++			}
++		} finally {
++			connection.disconnect();
++		}
++	}
+ 
+-      try {
+-        in = url.openStream();
+-        buffer = new ByteArrayOutputStream();
++	private Result retryOrFail() {
++		if (getRunAttemptCount() >= MAX_AUTOMATIC_RETRIES) {
++			Log.w("urlTile", "Tile request exhausted automatic retries");
++			return Result.failure();
++		}
++		return Result.retry();
++	}
+ 
+-        int nRead;
+-        byte[] data = new byte[BUFFER_SIZE];
++	private static final class NonSuccessfulResponseException extends IOException {
++		private final int statusCode;
+ 
+-        while ((nRead = in.read(data, 0, BUFFER_SIZE)) != -1) {
+-          buffer.write(data, 0, nRead);
+-        }
+-        buffer.flush();
++		private NonSuccessfulResponseException(int statusCode) {
++			super("Tile request returned HTTP " + statusCode);
++			this.statusCode = statusCode;
++		}
+ 
+-        return buffer.toByteArray();
+-      } catch (IOException | OutOfMemoryError e) {
+-        e.printStackTrace();
+-        return null;
+-      } finally {
+-        if (in != null) try { in.close(); } catch (Exception ignored) {}
+-        if (buffer != null) try { buffer.close(); } catch (Exception ignored) {}
+-      }
+-    }
++		private int getStatusCode() {
++			return statusCode;
++		}
++	}
+ 
+ 	private boolean writeTileImage(byte[] image, String fileName) {
+       OutputStream out = null;
+diff --git a/ios/AirMaps/AIRMapUrlTileCachedOverlay.m b/ios/AirMaps/AIRMapUrlTileCachedOverlay.m
+index 63d305c7c4d490fa27e02e8a0b80ed0acd466e0f..ab9d7cc768887c6d3219e4e59ecf96e5f7016328 100644
+--- a/ios/AirMaps/AIRMapUrlTileCachedOverlay.m
++++ b/ios/AirMaps/AIRMapUrlTileCachedOverlay.m
+@@ -7,6 +7,16 @@
+ 
+ #import "AIRMapUrlTileCachedOverlay.h"
+ 
++static BOOL isSuccessfulTileResponse(NSURLResponse *response, NSError *error)
++{
++    if (error || ![response isKindOfClass:[NSHTTPURLResponse class]]) {
++        return NO;
++    }
++
++    NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
++    return statusCode >= 200 && statusCode < 300;
++}
++
+ @interface AIRMapUrlTileCachedOverlay ()
+ 
+ @end
+@@ -154,7 +164,20 @@
+         completionHandler:^(NSData *data,
+                             NSURLResponse *response,
+                             NSError *error) {
+-            result(data, error);
++            if (isSuccessfulTileResponse(response, error) && data.length > 0) {
++                result(data, nil);
++            } else {
++                NSError *tileError = error;
++                if (!tileError) {
++                    NSInteger statusCode = [response isKindOfClass:[NSHTTPURLResponse class]]
++                        ? [(NSHTTPURLResponse *)response statusCode]
++                        : NSURLErrorUnknown;
++                    tileError = [NSError errorWithDomain:NSURLErrorDomain
++                                                    code:statusCode
++                                                userInfo:nil];
++                }
++                result(nil, tileError);
++            }
+         }] resume];
+ }
+ 
+@@ -205,7 +228,7 @@
+                     completionHandler:^(NSData *data,
+                                         NSURLResponse *response,
+                                         NSError *error) {
+-                    if (!error) {
++                    if (isSuccessfulTileResponse(response, error) && data.length > 0) {
+                         [[NSFileManager defaultManager] createFileAtPath:[tileCacheFilePath path] contents:data attributes:nil];
+                         NSLog(@"tileCache File refreshed at %@", [tileCacheFilePath path]);
+                     }

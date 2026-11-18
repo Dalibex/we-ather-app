@@ -35,14 +35,14 @@ function contraste(texto: Rgb, fondo: Rgb): number {
 const MINIMO_AA = 4.5;
 
 describe('colores', () => {
-  it.each(['textoPrincipal', 'textoSecundario', 'textoSuave', 'verde'] as const)(
+  it.each(['textoPrincipal', 'textoSecundario', 'textoSuave', 'verde', 'error'] as const)(
     'el texto %s se lee sobre la tarjeta con contraste AA',
     (nombre) => {
       expect(contraste(hexARgb(colores[nombre]), colorTarjeta())).toBeGreaterThanOrEqual(MINIMO_AA);
     },
   );
 
-  it.each(['textoPrincipal', 'textoSecundario', 'textoSuave', 'verde'] as const)(
+  it.each(['textoPrincipal', 'textoSecundario', 'textoSuave', 'verde', 'error'] as const)(
     'el texto %s se lee sobre el fondo con contraste AA',
     (nombre) => {
       expect(contraste(hexARgb(colores[nombre]), hexARgb(colores.fondo))).toBeGreaterThanOrEqual(

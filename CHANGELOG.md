@@ -31,6 +31,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   OpenStreetMap bloquea las peticiones directas desde Android (T-05.2).
 - App móvil: la atribución de OpenStreetMap y el logo del mapa se colocan por encima de los botones
   de navegación del sistema, para que se lean y se puedan pulsar (T-05.2).
+- App móvil: guarda localmente las teselas; al volver a solicitar una que tenga más de siete días,
+  la muestra mientras intenta actualizarla. Errores HTTP no pisan teselas válidas y Android limita
+  los reintentos automáticos de fallos de red (T-05.4).
 - App móvil: el mapa se limita a Málaga. No se puede alejar más allá de lo que ocupa la ciudad y,
   si se arrastra fuera, vuelve al borde de Málaga al soltarlo (T-05.3).
 - App móvil: el mapa muestra la atribución de todos los proveedores de datos (OpenStreetMap,
@@ -48,6 +51,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - App móvil: pantalla de registro con correo, contraseña y la confirmación de tener 14 años o más y
   haber leído la política de privacidad, con un enlace para leerla. Todavía no valida ni envía los
   datos (HU-01, T-01.1).
+- App móvil: el registro valida el formulario al pulsar «Crear cuenta»: un correo con formato
+  correcto, una contraseña de al menos 8 caracteres y la casilla de edad y política marcada. Los
+  errores aparecen bajo cada campo, el lector de pantalla los anuncia y desaparecen al corregir el
+  campo. Si el correo ya está registrado lo dirá el servidor (HU-01, T-01.3).
 - App móvil: pantalla de inicio de sesión con correo y contraseña. Todavía no autentica ni envía las
   credenciales al servidor (HU-02, T-02.1).
 - App móvil: el registro y el inicio de sesión se enlazan entre sí y conservan el correo escrito al
