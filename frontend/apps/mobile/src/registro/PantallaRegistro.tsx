@@ -4,6 +4,7 @@ import { Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-nat
 import { MarcoAutenticacion } from '../components/MarcoAutenticacion';
 import { colores } from '../theme/colores';
 import { estilosFormulario as estilos } from '../theme/formulario';
+import { type ErroresRegistro, validarRegistro } from './validacionRegistro';
 
 /** La política vive en docs/privacidad.md; la app abre la versión publicada en main. */
 const URL_POLITICA_PRIVACIDAD =
@@ -12,7 +13,7 @@ const URL_POLITICA_PRIVACIDAD =
 // Según el RGPD, la política se informa, no se acepta: el usuario confirma que la ha leído.
 const TEXTO_CASILLA = 'Tengo 14 años o más y he leído la política de privacidad';
 
-/** Lo que el usuario ha escrito en el formulario de registro, tal cual, sin validar. */
+/** Los datos del formulario de registro. */
 export interface DatosRegistro {
   correo: string;
   contrasena: string;
@@ -21,7 +22,7 @@ export interface DatosRegistro {
 }
 
 interface Props {
-  /** Recibe los datos al pulsar «Crear cuenta». Validarlos y enviarlos no es cosa de esta pantalla. */
+  /** Recibe los datos ya validados, con el correo sin espacios en los extremos, al pulsar «Crear cuenta». */
   onEnviar: (datos: DatosRegistro) => void;
   /** Vuelve a la pantalla anterior. */
   onVolver: () => void;
@@ -41,14 +42,38 @@ export function PantallaRegistro({
   correoInicial = '',
   onCambiarCorreo,
 }: Props) {
+  const [errores, setErrores] = useState<ErroresRegistro>({});
+  // El error de un campo desaparece en cuanto el usuario lo toca; se vuelve a validar al enviar.
+  const borrarError = (campo: keyof ErroresRegistro) =>
+    setErrores((anteriores) => ({ ...anteriores, [campo]: undefined }));
+
   const [correo, setCorreo] = useState(correoInicial);
   const cambiarCorreo = (nuevo: string) => {
     setCorreo(nuevo);
+    borrarError('correo');
     onCambiarCorreo?.(nuevo);
   };
 
   const [contrasena, setContrasena] = useState('');
+  const cambiarContrasena = (nueva: string) => {
+    setContrasena(nueva);
+    borrarError('contrasena');
+  };
+
   const [confirmaEdadYPolitica, setConfirmaEdadYPolitica] = useState(false);
+  const cambiarCasilla = () => {
+    setConfirmaEdadYPolitica((marcada) => !marcada);
+    borrarError('confirmaEdadYPolitica');
+  };
+
+  const crearCuenta = () => {
+    const datos = { correo, contrasena, confirmaEdadYPolitica };
+    const nuevosErrores = validarRegistro(datos);
+    setErrores(nuevosErrores);
+    if (Object.keys(nuevosErrores).length === 0) {
+      onEnviar({ ...datos, correo: correo.trim() });
+    }
+  };
 
   return (
     <MarcoAutenticacion
@@ -67,28 +92,30 @@ export function PantallaRegistro({
         autoCorrect={false}
         placeholder="tu@email.com"
         placeholderTextColor={colores.placeholder}
-        style={estilos.campo}
+        style={[estilos.campo, errores.correo && estilosLocal.campoConError]}
       />
+      <MensajeError mensaje={errores.correo} />
 
       <Text style={estilos.etiqueta}>Contraseña</Text>
       <TextInput
         accessibilityLabel="Contraseña"
         value={contrasena}
-        onChangeText={setContrasena}
+        onChangeText={cambiarContrasena}
         secureTextEntry
         autoCapitalize="none"
         autoComplete="new-password"
-        placeholder="Tu contraseña"
+        placeholder="Mínimo 8 caracteres"
         placeholderTextColor={colores.placeholder}
-        style={estilos.campo}
+        style={[estilos.campo, errores.contrasena && estilosLocal.campoConError]}
       />
+      <MensajeError mensaje={errores.contrasena} />
 
       <Pressable
         accessibilityRole="checkbox"
         // Nombre fijo: así el «✓» del cuadro no cambia lo que lee el lector de pantalla.
         accessibilityLabel={TEXTO_CASILLA}
         accessibilityState={{ checked: confirmaEdadYPolitica }}
-        onPress={() => setConfirmaEdadYPolitica((marcada) => !marcada)}
+        onPress={cambiarCasilla}
         style={estilosLocal.casilla}
       >
         <View style={[estilosLocal.cuadro, confirmaEdadYPolitica && estilosLocal.cuadroMarcado]}>
@@ -96,6 +123,7 @@ export function PantallaRegistro({
         </View>
         <Text style={estilosLocal.textoCasilla}>{TEXTO_CASILLA}</Text>
       </Pressable>
+      <MensajeError mensaje={errores.confirmaEdadYPolitica} />
 
       <Pressable
         accessibilityRole="link"
@@ -107,11 +135,7 @@ export function PantallaRegistro({
         <Text style={estilosLocal.enlacePoliticaTexto}>Leer la política de privacidad</Text>
       </Pressable>
 
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => onEnviar({ correo, contrasena, confirmaEdadYPolitica })}
-        style={estilos.boton}
-      >
+      <Pressable accessibilityRole="button" onPress={crearCuenta} style={estilos.boton}>
         <Text style={estilos.textoBoton}>Crear cuenta</Text>
       </Pressable>
 
@@ -130,8 +154,27 @@ export function PantallaRegistro({
   );
 }
 
+/** Mensaje de error bajo un campo; el lector de pantalla lo anuncia en cuanto aparece. */
+function MensajeError({ mensaje }: { mensaje?: string }) {
+  if (!mensaje) return null;
+  return (
+    <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={estilosLocal.error}>
+      {mensaje}
+    </Text>
+  );
+}
+
 /** Solo lo que es exclusivo del registro: la casilla, el enlace a la política y el del login. */
 const estilosLocal = StyleSheet.create({
+  campoConError: {
+    borderColor: colores.error,
+    marginBottom: 6,
+  },
+  error: {
+    color: colores.error,
+    fontSize: 13,
+    marginBottom: 14,
+  },
   casilla: {
     alignItems: 'center',
     flexDirection: 'row',
