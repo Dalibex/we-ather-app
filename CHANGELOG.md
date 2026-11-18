@@ -42,6 +42,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   tiempo de cinco puntos de Málaga (Open-Meteo) y `POST /api/ingestion/urban` guarda las calles
   (OpenStreetMap, Overpass), las dos con autenticación. `GET /api/heatmap` devuelve la última
   observación de cada punto. Fuentes y frecuencias en `docs/fuentes-datos.md` (T-17.1).
+- Servidor: la ingesta meteorológica guarda también la nubosidad (`cloud_cover`) de cada punto.
+  Las peticiones a Open-Meteo y Overpass se identifican con el `User-Agent` de WEather y tienen un
+  tiempo máximo de espera (`spring.http.clients` en `application.yaml`), para que un proveedor que
+  no responde no deje la ingesta colgada (T-17.2).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).
