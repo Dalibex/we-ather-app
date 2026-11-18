@@ -35,8 +35,8 @@ class ReportPropertiesTest {
     class WhenWeightIsPositive {
 
         @ParameterizedTest(name = "peso {0}")
-        @DisplayName("acepta el mínimo positivo y conserva el valor")
-        @ValueSource(ints = {1})
+        @DisplayName("acepta el mínimo positivo y el valor de producción, y conserva el valor")
+        @ValueSource(ints = {1, 5})
         void constructor_positiveWeight_keepsWeight(int pesoEstimacion) {
             // Arrange: el peso llega por parámetro
 

@@ -55,6 +55,21 @@ class ReportCombinerConfigurationTest {
     }
 
     @Test
+    @DisplayName("sin la propiedad, el contexto no arranca por el peso inválido")
+    void context_pesoEstimacionMissing_failsToStart() {
+        contextRunner.run(
+                context -> {
+                    // Arrange: ninguna propiedad weather.reportes, así que el peso se enlaza a 0
+
+                    // Act
+                    Throwable failure = context.getStartupFailure();
+
+                    // Assert
+                    assertThat(failure).rootCause().isInstanceOf(IllegalArgumentException.class);
+                });
+    }
+
+    @Test
     @DisplayName("application.yaml fija el peso de la estimación en 5")
     void applicationYaml_pesoEstimacion_isFive() throws IOException {
         // Arrange
