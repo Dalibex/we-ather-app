@@ -37,7 +37,7 @@ weather:
       - name: Ciudad Jardín
         latitude: 36.7390
         longitude: -4.4300
-        
+
   teselas:
     # Proveedor de las teselas del mapa base. OpenStreetMap exige un User-Agent que identifique a
     # la aplicación (https://operations.osmfoundation.org/policies/tiles/).
@@ -71,3 +71,7 @@ weather:
       overpass:
         max-peticiones: 2
         ventana: 1d
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
