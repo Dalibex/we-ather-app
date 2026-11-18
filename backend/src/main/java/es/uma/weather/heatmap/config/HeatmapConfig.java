@@ -4,5 +4,5 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(HeatIngestionProperties.class)
+@EnableConfigurationProperties({HeatIngestionProperties.class, ReportProperties.class})
 public class HeatmapConfig {}
