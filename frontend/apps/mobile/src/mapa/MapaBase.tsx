@@ -21,13 +21,6 @@ const TESELAS_OSM = `${URL_API}/api/v1/teselas/{z}/{x}/{y}.png`;
 const ZOOM_MAXIMO_OSM = 19;
 /** La app puede reutilizar las teselas durante el mismo plazo que el servidor. */
 const EDAD_MAXIMA_CACHE_TESELAS_SEGUNDOS = 7 * 24 * 60 * 60;
-const DIRECTORIO_CACHE = FileSystem.cacheDirectory;
-
-if (!DIRECTORIO_CACHE) {
-  throw new Error('No se pudo determinar el directorio de caché local de la aplicación.');
-}
-
-const DIRECTORIO_CACHE_TESELAS = `${DIRECTORIO_CACHE}teselas-mapa/`;
 
 /**
  * Mapa base de Málaga con teselas de OpenStreetMap, que se desplaza y amplía con gestos.
@@ -39,6 +32,12 @@ const DIRECTORIO_CACHE_TESELAS = `${DIRECTORIO_CACHE}teselas-mapa/`;
  */
 export function MapaBase() {
   const margenes = useSafeAreaInsets();
+  const cacheTeselas = FileSystem.cacheDirectory
+    ? {
+        tileCachePath: `${FileSystem.cacheDirectory}teselas-mapa-v2/`,
+        tileCacheMaxAge: EDAD_MAXIMA_CACHE_TESELAS_SEGUNDOS,
+      }
+    : {};
 
   return (
     <View style={styles.contenedor}>
@@ -54,8 +53,7 @@ export function MapaBase() {
           urlTemplate={TESELAS_OSM}
           maximumZ={ZOOM_MAXIMO_OSM}
           shouldReplaceMapContent
-          tileCachePath={DIRECTORIO_CACHE_TESELAS}
-          tileCacheMaxAge={EDAD_MAXIMA_CACHE_TESELAS_SEGUNDOS}
+          {...cacheTeselas}
           offlineMode={false}
         />
       </MapView>

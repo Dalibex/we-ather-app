@@ -109,8 +109,21 @@ Tras cambiar `.env`, reinicia Expo.
 
 La app conserva localmente las teselas que ya ha mostrado en el directorio de caché del dispositivo.
 Al volver a solicitar una tesela guardada hace más de siete días, la muestra mientras intenta
-actualizarla; las teselas que aún no tiene se siguen pidiendo al servidor. El sistema operativo
-puede borrar esta caché si necesita espacio.
+actualizarla; las teselas que aún no tiene se siguen pidiendo al servidor. Las respuestas HTTP que
+no sean satisfactorias no sustituyen teselas válidas; Android limita a tres los reintentos
+automáticos de fallos de red. La app no limita el tamaño ni purga esta caché: el sistema operativo
+puede borrarla si necesita espacio, así que no debe tratarse como almacenamiento persistente.
+
+La corrección del tratamiento de errores está parcheada en el código nativo de `react-native-maps`:
+Expo Go no la incluye. Para probarla hace falta compilar la app nativa; en Android, con un emulador
+disponible, ejecuta desde `frontend`:
+
+```bash
+pnpm --filter @weather/mobile exec expo run:android
+```
+
+Para iOS se necesita macOS y Xcode; desde `frontend`, ejecuta
+`pnpm --filter @weather/mobile exec expo run:ios`.
 
 Comprobaciones, las mismas que el job `frontend` de la CI:
 

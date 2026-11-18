@@ -2,7 +2,9 @@ import { render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
 jest.mock('expo-file-system/legacy', () => ({
-  cacheDirectory: 'file:///cache/',
+  get cacheDirectory() {
+    return process.env.EXPO_TEST_CACHE_DIRECTORY === 'none' ? null : 'file:///cache/';
+  },
 }));
 
 import { MapaBase } from './MapaBase';
@@ -30,9 +32,27 @@ describe('MapaBase', () => {
     await render(<MapaBase />);
 
     const teselas = screen.getByTestId('teselas-osm').props;
-    expect(teselas.tileCachePath).toBe('file:///cache/teselas-mapa/');
+    expect(teselas.tileCachePath).toBe('file:///cache/teselas-mapa-v2/');
     expect(teselas.tileCacheMaxAge).toBe(7 * 24 * 60 * 60);
     expect(teselas.offlineMode).toBe(false);
+  });
+
+  it('sigue mostrando el mapa si el sistema no proporciona un directorio de caché', async () => {
+    const directorioAnterior = process.env.EXPO_TEST_CACHE_DIRECTORY;
+    process.env.EXPO_TEST_CACHE_DIRECTORY = 'none';
+
+    try {
+      await render(<MapaBase />);
+
+      expect(screen.getByTestId('mapa-base')).toBeOnTheScreen();
+      expect(screen.getByTestId('teselas-osm').props.tileCachePath).toBeUndefined();
+    } finally {
+      if (directorioAnterior === undefined) {
+        delete process.env.EXPO_TEST_CACHE_DIRECTORY;
+      } else {
+        process.env.EXPO_TEST_CACHE_DIRECTORY = directorioAnterior;
+      }
+    }
   });
 
   it('muestra la atribución de los proveedores de datos', async () => {
