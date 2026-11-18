@@ -105,4 +105,61 @@ class ReportCombinerTest {
             assertThat(result.get(0).heatScore()).isCloseTo(42.9, within(0.001));
         }
     }
+
+    @Nested
+    @DisplayName("cuando hay varias zonas")
+    class WhenSeveralZones {
+
+        private final ZoneHeat teatinos = new ZoneHeat("Teatinos", 36.7160, -4.4720, 60.0);
+
+        @Test
+        @DisplayName("un reporte cerca de Teatinos solo ajusta Teatinos y deja Centro igual")
+        void combine_reportNearTeatinos_adjustsOnlyTeatinos() {
+            // Arrange
+            List<ValidatedReport> reports = List.of(new ValidatedReport(36.7170, -4.4700, 5));
+
+            // Act
+            List<ZoneHeat> result = combiner.combine(List.of(centro, teatinos), reports);
+
+            // Assert
+            assertThat(result).extracting(ZoneHeat::name).containsExactly("Centro", "Teatinos");
+            assertThat(result.get(0).heatScore()).isCloseTo(40.0, within(0.001));
+            assertThat(result.get(1).heatScore()).isCloseTo(66.7, within(0.001));
+        }
+
+        @Test
+        @DisplayName("un reporte cerca de cada zona ajusta cada zona con el suyo")
+        void combine_oneReportPerZone_adjustsEachZoneWithItsOwn() {
+            // Arrange
+            List<ValidatedReport> reports =
+                    List.of(
+                            new ValidatedReport(36.7220, -4.4200, 1),
+                            new ValidatedReport(36.7170, -4.4700, 5));
+
+            // Act
+            List<ZoneHeat> result = combiner.combine(List.of(centro, teatinos), reports);
+
+            // Assert
+            assertThat(result).extracting(ZoneHeat::name).containsExactly("Centro", "Teatinos");
+            assertThat(result.get(0).heatScore()).isCloseTo(33.3, within(0.001));
+            assertThat(result.get(1).heatScore()).isCloseTo(66.7, within(0.001));
+        }
+
+        @Test
+        @DisplayName(
+                "la distancia usa latitud y longitud: misma latitud que Teatinos pero longitud"
+                        + " de Centro cuenta para Centro")
+        void combine_sameLatitudeAsTeatinosButCentroLongitude_adjustsCentro() {
+            // Arrange
+            List<ValidatedReport> reports = List.of(new ValidatedReport(36.7160, -4.4250, 5));
+
+            // Act
+            List<ZoneHeat> result = combiner.combine(List.of(centro, teatinos), reports);
+
+            // Assert
+            assertThat(result).extracting(ZoneHeat::name).containsExactly("Centro", "Teatinos");
+            assertThat(result.get(0).heatScore()).isCloseTo(50.0, within(0.001));
+            assertThat(result.get(1).heatScore()).isCloseTo(60.0, within(0.001));
+        }
+    }
 }
