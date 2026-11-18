@@ -47,6 +47,15 @@ weather:
     directorio-cache: ${WEATHER_TESELAS_CACHE:.cache/teselas}
     caducidad: 7d
 
+  lugares:
+    # Búsqueda de lugares por texto en Nominatim. Su política de uso
+    # (https://operations.osmfoundation.org/policies/nominatim/) pide un User-Agent que identifique
+    # a la aplicación, una petición por segundo como máximo (límite "nominatim" de abajo), guardar
+    # los resultados y no buscar mientras se escribe.
+    url: https://nominatim.openstreetmap.org/search
+    user-agent: ${weather.teselas.user-agent}
+    max-resultados: 5
+
   proveedores:
     # Peticiones máximas del servidor a cada proveedor externo por ventana de tiempo. Evitan que un
     # error dispare peticiones contra el proveedor. La caché y el refresco de los datos llegan con
@@ -71,3 +80,7 @@ weather:
       overpass:
         max-peticiones: 2
         ventana: 1d
+      # Política de uso de Nominatim: como máximo una petición por segundo.
+      nominatim:
+        max-peticiones: 1
+        ventana: 1s
