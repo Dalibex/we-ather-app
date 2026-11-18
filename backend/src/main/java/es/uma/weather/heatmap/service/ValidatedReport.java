@@ -6,4 +6,11 @@ package es.uma.weather.heatmap.service;
  *
  * @param rating sensación térmica de 1 (fresco) a 5 (mucho calor)
  */
-public record ValidatedReport(double latitude, double longitude, int rating) {}
+public record ValidatedReport(double latitude, double longitude, int rating) {
+
+    public ValidatedReport {
+        if (rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("La valoración debe estar entre 1 y 5");
+        }
+    }
+}
