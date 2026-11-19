@@ -15,9 +15,7 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.config.CronTask;
 import org.springframework.scheduling.config.ScheduledTask;
 import org.springframework.scheduling.config.ScheduledTaskHolder;
@@ -30,14 +28,9 @@ class HeatmapSchedulingConfigurationTest {
     private static final String URBAN_CRON = "0 0 4 * * MON";
     private static final ZoneId MADRID = ZoneId.of("Europe/Madrid");
 
-    /** Solo activa la planificación; la de producción (SchedulingConfig) llega en el paso verde. */
-    @Configuration
-    @EnableScheduling
-    static class EnableSchedulingOnly {}
-
     private final ApplicationContextRunner contextRunner =
             new ApplicationContextRunner()
-                    .withUserConfiguration(EnableSchedulingOnly.class, HeatmapScheduler.class)
+                    .withUserConfiguration(SchedulingConfig.class, HeatmapScheduler.class)
                     .withBean(HeatmapGenerator.class, () -> mock(HeatmapGenerator.class))
                     .withBean(
                             UrbanDataIngestionService.class,
