@@ -16,7 +16,11 @@ class HeatIngestionPropertiesTest {
 
         HeatIngestionProperties properties =
                 new HeatIngestionProperties(
-                        "https://weather.test", "https://overpass.test", "1,2,3,4", points);
+                        "https://weather.test",
+                        "https://overpass.test",
+                        "1,2,3,4",
+                        "WEather/test",
+                        points);
 
         points.clear();
 
@@ -28,7 +32,11 @@ class HeatIngestionPropertiesTest {
     void usesEmptyListWhenPointsAreNull() {
         HeatIngestionProperties properties =
                 new HeatIngestionProperties(
-                        "https://weather.test", "https://overpass.test", "1,2,3,4", null);
+                        "https://weather.test",
+                        "https://overpass.test",
+                        "1,2,3,4",
+                        "WEather/test",
+                        null);
 
         assertEquals(List.of(), properties.points());
         assertThrows(

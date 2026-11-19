@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.TransactionOperations;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -53,7 +54,8 @@ public class UrbanDataIngestionService {
             TransactionOperations transactionOperations,
             HeatIngestionProperties properties,
             LimitadorPeticiones limitadorPeticiones) {
-        this.restClient = restClientBuilder.build();
+        this.restClient =
+                restClientBuilder.defaultHeader("User-Agent", properties.userAgent()).build();
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
         this.transactionOperations = transactionOperations;
@@ -66,7 +68,7 @@ public class UrbanDataIngestionService {
      *
      * <p>Solo una respuesta completa y con vías cambia la tabla, y lo hace entera o nada: en una
      * transacción guarda todas las vías y retira las que ya no están en OpenStreetMap. En cualquier
-     * otro caso se conservan las calles anteriores.
+     * otro caso, también si Overpass o la base de datos fallan, se conservan las calles anteriores.
      *
      * @return tramos guardados, o 0 si no se ha actualizado nada
      */
@@ -76,8 +78,21 @@ public class UrbanDataIngestionService {
             LOGGER.warn("Límite de peticiones a Overpass alcanzado: no se actualizan las calles");
             return 0;
         }
-        JsonNode response = readResponse(fetchStreets());
+        try {
+            return replaceWith(objectMapper.readTree(fetchStreets()));
+        } catch (RestClientException
+                | JacksonException
+                | DataAccessException
+                | TransactionException exception) {
+            LOGGER.warn(
+                    "No se pudieron actualizar las calles de Overpass: se conservan las"
+                            + " anteriores",
+                    exception);
+            return 0;
+        }
+    }
 
+    private int replaceWith(JsonNode response) {
         // Si la consulta se queda sin tiempo o sin memoria, Overpass responde 200 igualmente, con
         // «remark» y solo parte de las vías.
         String remark = response.path("remark").asString("");
@@ -98,12 +113,7 @@ public class UrbanDataIngestionService {
 
         // La petición a Overpass queda fuera de la transacción, para no retener una conexión a la
         // base de datos mientras se espera su respuesta.
-        try {
-            transactionOperations.executeWithoutResult(status -> replaceSegments(segments));
-        } catch (DataAccessException | TransactionException exception) {
-            throw new IllegalStateException(
-                    "No se pudieron guardar las calles de Overpass", exception);
-        }
+        transactionOperations.executeWithoutResult(status -> replaceSegments(segments));
         LOGGER.info("Ingesta de OpenStreetMap terminada: {} tramos guardados", segments.size());
         return segments.size();
     }
@@ -121,15 +131,6 @@ public class UrbanDataIngestionService {
                 .body(form)
                 .retrieve()
                 .body(String.class);
-    }
-
-    private JsonNode readResponse(String response) {
-        try {
-            return objectMapper.readTree(response);
-        } catch (JacksonException exception) {
-            throw new IllegalStateException(
-                    "No se pudo procesar la respuesta de Overpass", exception);
-        }
     }
 
     private List<StreetSegment> toSegments(JsonNode elements) {
