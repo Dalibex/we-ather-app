@@ -53,6 +53,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   última observación de Open-Meteo de cada punto, ajustada con los reportes validados (todavía no
   hay ninguno). Las calles de Overpass se recargan cada semana, y al arrancar si faltan o tienen más
   de siete días. Las frecuencias se configuran en `weather.heat.schedule` (T-17.3, T-17.4).
+- Servidor: el tiempo de Open-Meteo se refresca solo cada hora en punto (`weather.heat.refresco-cron`
+  en `application.yaml`). Si Open-Meteo falla, `GET /api/heatmap` sigue devolviendo la última
+  observación válida de cada punto (T-20.1).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).
