@@ -2,6 +2,7 @@ package es.uma.weather.heatmap.scheduling;
 
 import es.uma.weather.heatmap.service.HeatmapGenerator;
 import es.uma.weather.ingestion.service.UrbanDataIngestionService;
+import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,21 +46,27 @@ public class HeatmapScheduler {
         urbanDataIngestionService.ingest();
     }
 
-    /** Al arrancar, programa {@link #refreshUrbanDataIfOutdated()} en el planificador. */
-    public void scheduleUrbanRefreshOnStartup() {}
+    /**
+     * Al arrancar, programa {@link #refreshUrbanDataIfOutdated()} en el planificador para que la
+     * descarga no retrase el arranque. Con el hilo único del planificador, nunca coincide con la
+     * carga semanal.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void scheduleUrbanRefreshOnStartup() {
+        taskScheduler.schedule(this::refreshUrbanDataIfOutdated, Instant.now());
+    }
 
     /**
      * Al arrancar, carga las calles si faltan o están desactualizadas: un cron no recupera las
      * ejecuciones que se perdieron con el servidor apagado. No hace nada si la carga periódica está
      * desactivada ({@code -}).
      */
-    @EventListener(ApplicationReadyEvent.class)
     public void refreshUrbanDataIfOutdated() {
         if (Scheduled.CRON_DISABLED.equals(urbanCron)) {
             return;
         }
-        // Best effort: an exception thrown from an ApplicationReadyEvent listener would make Spring
-        // Boot close the context and stop the server; the weekly cron retries anyway.
+        // Es una carga de apoyo: si falla, se registra como aviso y el cron semanal vuelve a
+        // intentarlo.
         try {
             if (urbanDataIngestionService.isOutdated()) {
                 LOGGER.info("Calles ausentes o desactualizadas: se cargan al arrancar");
