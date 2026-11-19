@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-Este documento define las fuentes de datos abiertas utilizadas por WEather, el procedimiento de obtención de los datos y la frecuencia de actualización propuesta para el mapa de exposición al calor de Málaga.
+Este documento define las fuentes de datos abiertas utilizadas por WEather, el procedimiento de obtención de los datos y la frecuencia de actualización acordada para el mapa de exposición al calor de Málaga.
 
 ## 2. Fuentes de datos
 
@@ -25,7 +25,7 @@ Este documento define las fuentes de datos abiertas utilizadas por WEather, el p
   - Carretera de Cádiz.
   - Ciudad Jardín.
 - **Almacenamiento:** los datos se guardan en PostgreSQL/PostGIS, junto con la fecha de observación y la puntuación y nivel de exposición al calor calculados por el backend.
-- **Frecuencia propuesta:** una actualización cada hora.
+- **Frecuencia:** una actualización cada hora.
 
 La consulta utiliza la zona horaria `Europe/Madrid`. Cada punto se consulta mediante una petición independiente.
 
@@ -38,7 +38,7 @@ La consulta utiliza la zona horaria `Europe/Madrid`. Cada punto se consulta medi
 - **Datos obtenidos:** segmentos de calles, identificadores de vías, geometrías y etiquetas disponibles, como el tipo de vía y su nombre.
 - **Cobertura inicial:** área de Málaga delimitada por el recuadro geográfico configurado en la aplicación.
 - **Almacenamiento:** los segmentos se guardan en PostgreSQL/PostGIS como geometrías espaciales.
-- **Frecuencia propuesta:** una actualización cada siete días.
+- **Frecuencia:** una actualización cada siete días.
 
 La nubosidad (`cloud_cover`) se guarda con cada observación, pero no entra en el cálculo de la puntuación de exposición: ese cálculo usa la radiación solar de onda corta (`shortwave_radiation`), que ya refleja el efecto de las nubes sobre la radiación que llega a la superficie.
 
@@ -70,9 +70,9 @@ Ambos endpoints requieren autenticación.
 
 ## 4. Frecuencia y planificación
 
-Se establecen las siguientes frecuencias objetivo:
+Frecuencias acordadas con el Product Owner:
 
-| Fuente | Frecuencia propuesta | Motivo |
+| Fuente | Frecuencia | Motivo |
 |---|---|---|
 | Open-Meteo | Cada hora | Los datos meteorológicos pueden variar durante el día. |
 | OpenStreetMap / Overpass | Cada siete días | La información de las vías cambia con menor frecuencia. |
@@ -80,9 +80,7 @@ Se establecen las siguientes frecuencias objetivo:
 **Estado actual:**
 
 - **Open-Meteo:** `RefrescoMeteorologico` lanza la ingesta meteorológica cada hora en punto, en hora de Madrid (T-20.1, HU-20). La frecuencia está en `weather.heat.refresco-cron` de `application.yaml`, en formato cron de Spring; el valor `-` la desactiva, y así se hace en las pruebas (`src/test/resources/config/application.yaml`). Las peticiones de los usuarios nunca llaman a Open-Meteo: `GET /api/heatmap` lee las observaciones guardadas.
-- **Overpass:** la carga de las calles sigue siendo manual. Su ejecución periódica queda pendiente.
-
-Las frecuencias son propuestas pendientes de confirmación por el Product Owner: una hora para los datos meteorológicos y siete días para los datos urbanos.
+- **Overpass:** la carga de las calles sigue siendo manual. Su ejecución periódica cada siete días queda para la T-17.4.
 
 ## 5. Gestión de errores y uso responsable
 
@@ -90,7 +88,7 @@ Las frecuencias son propuestas pendientes de confirmación por el Product Owner:
 - La ingesta meteorológica procesa cada punto de forma independiente: si una respuesta falla o está incompleta, no se guarda esa observación y se conserva la última observación válida ya almacenada, que es la que sigue devolviendo `GET /api/heatmap`.
 - La ingesta urbana sustituye las calles enteras o no cambia nada. Overpass responde `200` aunque la consulta se quede sin tiempo o sin memoria, y lo indica con el campo `remark`; esa respuesta incompleta se descarta, igual que una sin ninguna vía válida, y se conservan las calles anteriores. Una respuesta completa se guarda en una sola transacción, que también retira las vías que ya no están en OpenStreetMap; si algo falla, se deshace y quedan las calles anteriores.
 - Antes de cada petición, ambos servicios consultan `LimitadorPeticiones`, configurado en `weather.proveedores.limites`. Si se alcanza el límite de Open-Meteo, se omite ese punto; si se alcanza el de Overpass, no se solicita la actualización urbana.
-- Overpass tiene un límite provisional configurado de dos peticiones por día, pendiente de confirmación por el Product Owner.
+- Overpass tiene un límite de dos peticiones por día, acordado con el Product Owner: con la carga semanal deja margen para un reintento si Overpass corta la consulta.
 - Las peticiones a ambos proveedores se identifican con el `User-Agent` de WEather (`weather.heat.user-agent`) y tienen un tiempo máximo de conexión (10 s) y de lectura (90 s, porque la consulta de Overpass puede tardar hasta 60 s), configurados en `spring.http.clients`. Una petición que los supera cuenta como un error de ese punto o de esa actualización.
 - Los errores por punto quedan registrados en el log. Las respuestas HTTP no satisfactorias o no procesables no deben generar observaciones válidas.
 - Los servicios devuelven el número de registros guardados. Los endpoints manuales responden `200` con estado `completed` si guardan al menos un registro y `503` con estado `failed` si no se guarda ninguno.
@@ -109,4 +107,4 @@ La aplicación debe mostrar la atribución correspondiente cuando utilice o pres
 - Los datos meteorológicos proceden de Open-Meteo y no de estaciones de medición propias de WEather.
 - Los datos urbanos dependen de los elementos disponibles en OpenStreetMap.
 - La información de calles obtenida mediante Overpass no garantiza por sí sola la disponibilidad de datos sobre árboles, sombra o zonas de refugio.
-- Las frecuencias propuestas no se ejecutan automáticamente en la implementación actual.
+- La carga de las calles de Overpass todavía no se ejecuta automáticamente (T-17.4).

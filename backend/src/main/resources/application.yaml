@@ -86,7 +86,8 @@ weather:
       ayuntamiento-malaga:
         max-peticiones: 40
         ventana: 1h
-      # Valor prudente provisional: la red viaria se refresca como máximo cada siete días.
+      # Acordado con el PO: la red viaria se refresca cada siete días y el límite deja margen para
+      # un reintento si Overpass corta la consulta.
       overpass:
         max-peticiones: 2
         ventana: 1d
