@@ -59,7 +59,7 @@ El backend implementa dos servicios de ingesta:
 - `WeatherIngestionService`: consulta Open-Meteo para los puntos configurados y almacena las observaciones meteorológicas.
 - `UrbanDataIngestionService`: consulta Overpass para obtener las geometrías de las calles y almacenarlas en PostGIS.
 
-La ejecución se realiza actualmente mediante estos endpoints:
+La ingesta meteorológica se ejecuta sola cada hora (sección 4). Las dos ingestas se pueden lanzar también a mano mediante estos endpoints:
 
 | Endpoint | Fuente |
 |---|---|
@@ -77,14 +77,17 @@ Se establecen las siguientes frecuencias objetivo:
 | Open-Meteo | Cada hora | Los datos meteorológicos pueden variar durante el día. |
 | OpenStreetMap / Overpass | Cada siete días | La información de las vías cambia con menor frecuencia. |
 
-**Estado actual:** las ingestas están implementadas y pueden ejecutarse manualmente mediante los endpoints indicados. La ejecución periódica automática todavía no está implementada.
+**Estado actual:**
 
-La incorporación de un planificador automático queda pendiente de aprobación y planificación en una iteración posterior. Las frecuencias indicadas son propuestas pendientes de confirmación por el Product Owner: una hora para los datos meteorológicos y siete días para los datos urbanos.
+- **Open-Meteo:** `RefrescoMeteorologico` lanza la ingesta meteorológica cada hora en punto, en hora de Madrid (T-20.1, HU-20). La frecuencia está en `weather.heat.refresco-cron` de `application.yaml`, en formato cron de Spring; el valor `-` la desactiva, y así se hace en las pruebas (`src/test/resources/config/application.yaml`). Las peticiones de los usuarios nunca llaman a Open-Meteo: `GET /api/heatmap` lee las observaciones guardadas.
+- **Overpass:** la carga de las calles sigue siendo manual. Su ejecución periódica queda pendiente.
+
+Las frecuencias son propuestas pendientes de confirmación por el Product Owner: una hora para los datos meteorológicos y siete días para los datos urbanos.
 
 ## 5. Gestión de errores y uso responsable
 
 - En Open-Meteo se exige que temperatura, humedad, viento, nubosidad, radiación, UV, hora de observación y desfase UTC estén presentes y tengan el tipo esperado. Los campos numéricos ausentes o nulos provocan el rechazo de ese punto; no se convierten implícitamente en `0.0`.
-- La ingesta meteorológica procesa cada punto de forma independiente: si una respuesta falla o está incompleta, no se guarda esa observación y se conserva la última observación válida ya almacenada.
+- La ingesta meteorológica procesa cada punto de forma independiente: si una respuesta falla o está incompleta, no se guarda esa observación y se conserva la última observación válida ya almacenada, que es la que sigue devolviendo `GET /api/heatmap`.
 - La ingesta urbana sustituye las calles enteras o no cambia nada. Overpass responde `200` aunque la consulta se quede sin tiempo o sin memoria, y lo indica con el campo `remark`; esa respuesta incompleta se descarta, igual que una sin ninguna vía válida, y se conservan las calles anteriores. Una respuesta completa se guarda en una sola transacción, que también retira las vías que ya no están en OpenStreetMap; si algo falla, se deshace y quedan las calles anteriores.
 - Antes de cada petición, ambos servicios consultan `LimitadorPeticiones`, configurado en `weather.proveedores.limites`. Si se alcanza el límite de Open-Meteo, se omite ese punto; si se alcanza el de Overpass, no se solicita la actualización urbana.
 - Overpass tiene un límite provisional configurado de dos peticiones por día, pendiente de confirmación por el Product Owner.

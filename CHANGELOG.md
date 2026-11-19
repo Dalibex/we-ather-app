@@ -49,6 +49,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   Las peticiones a Open-Meteo y Overpass se identifican con el `User-Agent` de WEather y tienen un
   tiempo máximo de espera (`spring.http.clients` en `application.yaml`), para que un proveedor que
   no responde no deje la ingesta colgada (T-17.2).
+- Servidor: el tiempo de Open-Meteo se refresca solo cada hora en punto (`weather.heat.refresco-cron`
+  en `application.yaml`). Si Open-Meteo falla, `GET /api/heatmap` sigue devolviendo la última
+  observación válida de cada punto (T-20.1).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).

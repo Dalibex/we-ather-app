@@ -1,0 +1,7 @@
+# Solo para las pruebas. Spring Boot carga este archivo además de src/main/resources/application.yaml
+# y sus valores mandan.
+weather:
+  heat:
+    # Sin refresco automático: una prueba que cruzara la hora en punto llamaría a Open-Meteo de
+    # verdad. Las pruebas lanzan la ingesta ellas mismas.
+    refresco-cron: "-"
