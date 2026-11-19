@@ -3,7 +3,9 @@ package es.uma.weather.heatmap.service;
 import es.uma.weather.heatmap.config.HeatIngestionProperties;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -11,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionOperations;
 
 /** Genera el mapa de calor interno por zona y lo guarda en {@code zone_heat}. */
-// shortcut: assumes a single server instance; with several, each would regenerate the snapshot
-// (harmless but redundant), add a lock such as ShedLock if the app scales out.
+// shortcut: supone una sola instancia del servidor; con varias, cada una regeneraría el mapa (sin
+// daño, pero repetido). Si la aplicación escala, añadir un bloqueo compartido como ShedLock.
 @Service
 public class HeatmapGenerator {
 
@@ -63,7 +65,9 @@ public class HeatmapGenerator {
      */
     public int generate() {
         List<ZoneHeat> zones = new ArrayList<>();
-        List<OffsetDateTime> observedAts = new ArrayList<>();
+        // Por nombre, no por posición: así no depende del orden en que combine() devuelve las
+        // zonas.
+        Map<String, OffsetDateTime> observedAtByZone = new HashMap<>();
         for (HeatIngestionProperties.GridPoint point : properties.points()) {
             List<Observation> latest =
                     jdbcTemplate.query(
@@ -81,7 +85,7 @@ public class HeatmapGenerator {
                             point.latitude(),
                             point.longitude(),
                             latest.getFirst().heatScore()));
-            observedAts.add(latest.getFirst().observedAt());
+            observedAtByZone.put(point.name(), latest.getFirst().observedAt());
         }
         if (zones.isEmpty()) {
             LOGGER.warn(
@@ -89,22 +93,20 @@ public class HeatmapGenerator {
             return 0;
         }
 
-        // The reads stay outside the transaction; only the writes hold a connection inside it.
+        // Las lecturas quedan fuera de la transacción; dentro solo van las escrituras.
         List<ZoneHeat> combined =
                 reportCombiner.combine(zones, reportSource.currentValidatedReports());
         transactionOperations.executeWithoutResult(
                 status -> {
                     jdbcTemplate.update(DELETE_ZONES_SQL);
-                    // combine() keeps the input order, so index i still matches observedAts.get(i).
-                    for (int i = 0; i < combined.size(); i++) {
-                        ZoneHeat zone = combined.get(i);
+                    for (ZoneHeat zone : combined) {
                         jdbcTemplate.update(
                                 INSERT_ZONE_SQL,
                                 zone.name(),
                                 zone.latitude(),
                                 zone.longitude(),
                                 zone.heatScore(),
-                                observedAts.get(i));
+                                observedAtByZone.get(zone.name()));
                     }
                 });
         LOGGER.info("Mapa de calor generado: {} zonas guardadas", combined.size());
