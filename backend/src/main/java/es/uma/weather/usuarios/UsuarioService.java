@@ -53,8 +53,14 @@ public class UsuarioService implements UserDetailsService {
 
         String hash = passwordEncoder.encode(contrasena);
 
+        if (hash == null) {
+            throw new IllegalStateException("No se pudo generar el hash de la contraseña");
+        }
+
         Usuario nuevoUsuario = Usuario.crear(correo, hash, Instant.now());
 
-        return repositorioUsuario.save(nuevoUsuario);
+        repositorioUsuario.saveAndFlush(nuevoUsuario);
+
+        return nuevoUsuario;
     }
 }
