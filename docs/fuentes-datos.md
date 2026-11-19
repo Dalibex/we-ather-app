@@ -50,7 +50,8 @@ La nubosidad (`cloud_cover`) se guarda con cada observación, pero no entra en e
   - Cada reporte cuenta en la zona más cercana de las que recibe el algoritmo (con T-17.4, los puntos de `weather.heat.points`). En caso de empate, cuenta en la primera.
   - Su valoración se pasa a la escala 0-100 del índice de exposición: `s = (valoración − 1) · 25`.
   - El calor de la zona se ajusta con una media ponderada, redondeada a un decimal: `(k · estimación + Σ s) / (k + n)`. Aquí `n` es el número de reportes de la zona y `k` (`weather.reportes.peso-estimacion`, fijado a 5 en `application.yaml`) indica cuántos reportes equivalentes vale la estimación meteorológica. Un reporte aislado no arrastra la zona; muchos reportes coherentes sí la mueven. Con `k` igual o menor que 0 (o si falta la propiedad), la aplicación no arranca.
-- **Pendiente:** guardar los reportes (T-12.2), filtrar los validados y vigentes (T-19.2) y aplicar la combinación en la generación periódica del mapa de calor (T-17.4). El sentido de la escala, el reparto por zona más cercana y el valor de `k` están pendientes de confirmación por el Product Owner.
+- **Aplicación:** la generación periódica del mapa de calor (T-17.4, sección 4) pide los reportes a `ValidatedReportSource`. Mientras no existan, su implementación (`EmptyValidatedReportSource`) no devuelve ninguno y el mapa refleja solo la estimación meteorológica.
+- **Pendiente:** guardar los reportes (T-12.2) y filtrar los validados y vigentes (T-19.2), que sustituye a `EmptyValidatedReportSource` por la fuente real. Como el mapa se regenera cada hora, un reporte puede seguir influyendo hasta una hora después de caducar, y uno nuevo tarda hasta una hora en notarse. El sentido de la escala, el reparto por zona más cercana y el valor de `k` están pendientes de confirmación por el Product Owner.
 
 ## 3. Procedimiento de obtención
 
@@ -59,7 +60,7 @@ El backend implementa dos servicios de ingesta:
 - `WeatherIngestionService`: consulta Open-Meteo para los puntos configurados y almacena las observaciones meteorológicas.
 - `UrbanDataIngestionService`: consulta Overpass para obtener las geometrías de las calles y almacenarlas en PostGIS.
 
-La ejecución se realiza actualmente mediante estos endpoints:
+Además de su ejecución periódica (sección 4), se pueden lanzar a mano con estos endpoints:
 
 | Endpoint | Fuente |
 |---|---|
@@ -77,9 +78,21 @@ Se establecen las siguientes frecuencias objetivo:
 | Open-Meteo | Cada hora | Los datos meteorológicos pueden variar durante el día. |
 | OpenStreetMap / Overpass | Cada siete días | La información de las vías cambia con menor frecuencia. |
 
-**Estado actual:** las ingestas están implementadas y pueden ejecutarse manualmente mediante los endpoints indicados. La ejecución periódica automática todavía no está implementada.
+`HeatmapScheduler` ejecuta las tareas periódicas con expresiones cron de `weather.heat.schedule` en `application.yaml`, en hora de `Europe/Madrid`:
 
-La incorporación de un planificador automático queda pendiente de aprobación y planificación en una iteración posterior. Las frecuencias indicadas son propuestas pendientes de confirmación por el Product Owner: una hora para los datos meteorológicos y siete días para los datos urbanos.
+| Tarea | Cron | Qué hace |
+|---|---|---|
+| Ingesta meteorológica | `0 0 * * * *` (cada hora en punto) | La programa la T-20.1, todavía pendiente. Mientras, solo se ejecuta a mano |
+| Generación del mapa de calor | `0 15 * * * *` (`weather.heat.schedule.generation`) | Toma la última observación de Open-Meteo de cada punto de `weather.heat.points`, la ajusta con los reportes (sección 2.3) y sustituye entera la tabla `zone_heat` en una transacción. Si ningún punto tiene observación, conserva el mapa anterior |
+| Ingesta urbana | `0 0 4 * * MON` (`weather.heat.schedule.urban`) | Vuelve a cargar las calles de Overpass cada lunes. Spring no admite «cada siete días» en un cron |
+
+- El mapa se genera en el minuto 15 para usar la observación de la hora en punto.
+- Un cron no recupera las ejecuciones que se pierden con el servidor apagado. Por eso, al arrancar, si no hay calles guardadas o la última se actualizó hace más de siete días, se cargan una vez.
+- `zone_heat` es el mapa de calor interno, una fila por zona. Guarda dos fechas: `generated_at` (cuándo se calculó) y `observed_at` (de cuándo es el dato meteorológico usado). Si la ingesta falla durante horas, el mapa se sigue generando con el último dato válido, y `observed_at` dice su antigüedad. El motor de rutas (T-17.5) decide qué hacer con un dato viejo.
+- Con el valor `-`, una tarea queda desactivada, y la carga de calles al arrancar también. Las pruebas usan ese valor (`src/test/resources/config/application.yaml`).
+- Se supone una sola instancia del servidor: con varias, cada una ejecutaría las tareas por su cuenta.
+
+Las frecuencias son propuestas pendientes de confirmación por el Product Owner.
 
 ## 5. Gestión de errores y uso responsable
 
@@ -106,4 +119,5 @@ La aplicación debe mostrar la atribución correspondiente cuando utilice o pres
 - Los datos meteorológicos proceden de Open-Meteo y no de estaciones de medición propias de WEather.
 - Los datos urbanos dependen de los elementos disponibles en OpenStreetMap.
 - La información de calles obtenida mediante Overpass no garantiza por sí sola la disponibilidad de datos sobre árboles, sombra o zonas de refugio.
-- Las frecuencias propuestas no se ejecutan automáticamente en la implementación actual.
+- La ingesta meteorológica todavía no se ejecuta de forma periódica (T-20.1); el mapa de calor se genera cada hora con la última observación guardada.
+- Cada zona es un punto de `weather.heat.points`, y cada reporte cuenta en la más cercana, sin distancia máxima. Si una zona no tiene observación, sus reportes pasan a la zona vecina.
