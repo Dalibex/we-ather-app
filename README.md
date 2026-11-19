@@ -17,7 +17,7 @@ implementa todas las historias de usuario. No hay versión publicada.
 
 | Parte | Carpeta | Estado |
 | --- | --- | --- |
-| Servidor | `backend/` | Spring Boot con PostgreSQL y PostGIS: health check, teselas del mapa base de Málaga con caché e ingesta de los datos del mapa de calor (Open-Meteo a mano, OpenStreetMap semanal) y generación horaria del mapa de calor interno por zona |
+| Servidor | `backend/` | Spring Boot con PostgreSQL y PostGIS: health check, teselas del mapa base de Málaga con caché e ingesta de los datos del mapa de calor (Open-Meteo a mano, OpenStreetMap semanal) y generación horaria del mapa de calor interno por zona, y registro de usuarios con autenticación por token JWT (sin inicio de sesión todavía) |
 | App móvil | `frontend/apps/mobile/` | Expo: bienvenida, registro con validaciones e inicio de sesión (sin conexión con el servidor) y mapa base de Málaga, al que se llega sin cuenta; las teselas de OpenStreetMap las pide al servidor |
 | Panel de administración | `frontend/apps/web/` | Esqueleto: Vite y React con una pantalla inicial |
 

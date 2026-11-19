@@ -32,8 +32,16 @@ cp .env.example .env   # y cambia la contraseña; .env nunca se versiona
 
 Al arrancar, Spring Boot levanta el contenedor de PostgreSQL definido en `docker-compose.yaml` con
 los valores de `.env` y aplica las migraciones de `src/main/resources/db/migration`. El estado del
-servidor está en <http://localhost:8080/actuator/health>. Son públicos el health check y las teselas
-del mapa (`/api/v1/teselas/{z}/{x}/{y}.png`); el resto de rutas pide autenticación.
+servidor está en <http://localhost:8080/actuator/health>. Son públicos el health check, las teselas
+del mapa (`/api/v1/teselas/{z}/{x}/{y}.png`) y el registro (`POST /api/v1/usuarios`); el resto de
+rutas pide un token JWT en la cabecera `Authorization: Bearer <token>`.
+
+El servidor firma esos tokens con la clave de la variable de entorno `JWT_SECRET` y no arranca sin
+ella. Tiene que ser una cadena Base64 de al menos 32 bytes, por ejemplo la que da
+`openssl rand -base64 32`. Ponla en la configuración de ejecución del IDE o al lanzar el servidor
+(`JWT_SECRET=<clave> ./mvnw spring-boot:run`); `.env` no sirve, porque solo lo lee Docker Compose
+para PostgreSQL. Cada entorno usa su propia clave, que nunca se versiona. Las pruebas usan una clave
+fija de prueba (`src/test/resources/config/application.yaml`).
 
 Las teselas se descargan de OpenStreetMap la primera vez y se guardan en `backend/.cache/teselas`
 (no se versiona; se cambia con la variable `WEATHER_TESELAS_CACHE`). Solo se sirven las que cubren
@@ -42,9 +50,11 @@ Málaga. El proveedor, el `User-Agent` con el que se identifica el servidor y la
 
 Si la base de datos no tiene calles, o las que tiene son de hace más de siete días, al arrancar se
 descargan todas las de Málaga de Overpass, que es un servicio compartido y gratuito. En local basta
-con hacerlo una vez: para no repetir la descarga, añade `WEATHER_HEAT_SCHEDULE_URBAN=-` a `.env` o a
-la configuración de ejecución. Así se desactivan la carga al arrancar y la semanal; las calles se
-pueden cargar a mano con `POST /api/ingestion/urban`.
+con hacerlo una vez: para no repetir la descarga, pon `WEATHER_HEAT_SCHEDULE_URBAN=-` en la
+configuración de ejecución (como `JWT_SECRET`, no sirve en `.env`). Así se desactivan la carga al
+arrancar y la semanal. `POST /api/ingestion/urban` las carga a mano, pero pide un token JWT, y hasta
+que llegue el inicio de sesión (T-02.3) no hay forma de obtenerlo: mientras, deja la variable sin
+poner hasta que las calles se hayan cargado una vez.
 
 Comprobaciones:
 

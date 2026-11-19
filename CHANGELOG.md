@@ -53,6 +53,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   última observación de Open-Meteo de cada punto, ajustada con los reportes validados (todavía no
   hay ninguno). Las calles de Overpass se recargan cada semana, y al arrancar si faltan o tienen más
   de siete días. Las frecuencias se configuran en `weather.heat.schedule` (T-17.3, T-17.4).
+- Servidor: registro de usuarios con `POST /api/v1/usuarios`, público. Guarda el correo normalizado y
+  la contraseña cifrada con BCrypt, y responde `201`. Valida lo mismo que la app (correo con formato
+  válido y de hasta 254 caracteres, contraseña de al menos 8 y la casilla de privacidad marcada): si
+  algo falla responde `400` y, si el correo ya tiene cuenta, `409`, los dos con un cuerpo
+  `{codigo, mensaje}`. Las rutas protegidas
+  piden un token JWT (`Authorization: Bearer`) firmado con la clave de `JWT_SECRET`, que sustituye a
+  la autenticación HTTP Basic; el inicio de sesión que entrega el token llega con la T-02.3 (T-01.2).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).
