@@ -3,6 +3,7 @@ package es.uma.weather.heatmap.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
+import es.uma.weather.heatmap.service.HeatmapGenerator;
 import es.uma.weather.heatmap.service.ReportCombiner;
 import es.uma.weather.heatmap.service.ValidatedReport;
 import es.uma.weather.heatmap.service.ZoneHeat;
@@ -16,15 +17,24 @@ import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.core.io.ClassPathResource;
 
 @DisplayName(
         "Configuración de ReportCombiner: la propiedad weather.reportes.peso-estimacion llega al bean")
 class ReportCombinerConfigurationTest {
 
-    /** Escaneo con los filtros por defecto: solo recoge las clases anotadas como componente. */
+    /**
+     * Escaneo con los filtros por defecto: solo recoge las clases anotadas como componente. Deja
+     * fuera HeatmapGenerator, que necesita la base de datos y no pinta nada en esta prueba.
+     */
     @Configuration
-    @ComponentScan(basePackageClasses = ReportCombiner.class)
+    @ComponentScan(
+            basePackageClasses = ReportCombiner.class,
+            excludeFilters =
+                    @ComponentScan.Filter(
+                            type = FilterType.ASSIGNABLE_TYPE,
+                            classes = HeatmapGenerator.class))
     static class ScanServicePackage {}
 
     private final ApplicationContextRunner contextRunner =

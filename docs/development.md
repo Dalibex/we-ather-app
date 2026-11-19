@@ -40,6 +40,12 @@ Las teselas se descargan de OpenStreetMap la primera vez y se guardan en `backen
 Málaga. El proveedor, el `User-Agent` con el que se identifica el servidor y la caducidad están en
 `weather.teselas` de `application.yaml`.
 
+Si la base de datos no tiene calles, o las que tiene son de hace más de siete días, al arrancar se
+descargan todas las de Málaga de Overpass, que es un servicio compartido y gratuito. En local basta
+con hacerlo una vez: para no repetir la descarga, añade `WEATHER_HEAT_SCHEDULE_URBAN=-` a `.env` o a
+la configuración de ejecución. Así se desactivan la carga al arrancar y la semanal; las calles se
+pueden cargar a mano con `POST /api/ingestion/urban`.
+
 Comprobaciones:
 
 | Comando | Qué hace |

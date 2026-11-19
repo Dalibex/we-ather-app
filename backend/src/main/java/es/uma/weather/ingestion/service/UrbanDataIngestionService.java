@@ -40,6 +40,10 @@ public class UrbanDataIngestionService {
     private static final String DELETE_MISSING_SEGMENTS_SQL =
             "DELETE FROM street_segments WHERE osm_way_id <> ALL (?)";
 
+    /** El reloj es el de la base de datos; sin tramos guardados cuenta como desactualizado. */
+    private static final String IS_OUTDATED_SQL =
+            "SELECT COALESCE(MAX(updated_at) < NOW() - INTERVAL '7 days', TRUE) FROM street_segments";
+
     private final RestClient restClient;
     private final JsonMapper objectMapper;
     private final JdbcTemplate jdbcTemplate;
@@ -191,6 +195,14 @@ public class UrbanDataIngestionService {
             wkt.append(longitude).append(' ').append(latitude);
         }
         return wkt.append(')').toString();
+    }
+
+    /**
+     * Indica si hay que volver a cargar las calles: no hay ninguna guardada o la última se
+     * actualizó hace más de siete días.
+     */
+    public boolean isOutdated() {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(IS_OUTDATED_SQL, Boolean.class));
     }
 
     /** Un tramo de calle leído de Overpass, listo para guardarse. */
