@@ -49,6 +49,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   Las peticiones a Open-Meteo y Overpass se identifican con el `User-Agent` de WEather y tienen un
   tiempo máximo de espera (`spring.http.clients` en `application.yaml`), para que un proveedor que
   no responde no deje la ingesta colgada (T-17.2).
+- Servidor: mapa de calor interno por zona en la tabla `zone_heat`. Se genera cada hora con la
+  última observación de Open-Meteo de cada punto, ajustada con los reportes validados (todavía no
+  hay ninguno). Las calles de Overpass se recargan cada semana, y al arrancar si faltan o tienen más
+  de siete días. Las frecuencias se configuran en `weather.heat.schedule` (T-17.3, T-17.4).
 - Servidor: el tiempo de Open-Meteo se refresca solo cada hora en punto (`weather.heat.refresco-cron`
   en `application.yaml`). Si Open-Meteo falla, `GET /api/heatmap` sigue devolviendo la última
   observación válida de cada punto (T-20.1).

@@ -35,6 +35,12 @@ weather:
     # Con él se identifica el servidor ante Open-Meteo y Overpass, como pide la política de uso de
     # Overpass. Es el mismo que el de las teselas.
     user-agent: ${weather.teselas.user-agent}
+    # Ejecución periódica (HeatmapScheduler), en hora de Europe/Madrid, con las frecuencias
+    # acordadas con el PO. El tiempo se ingiere a cada hora en punto (refresco-cron); el
+    # mapa se genera en el minuto 15 para usar ese dato. Con "-" se desactiva la ejecución.
+    schedule:
+      generation: "0 15 * * * *"
+      urban: "0 0 4 * * MON"
     # Puntos de la ciudad donde se consulta el tiempo; cada uno es una petición a Open-Meteo.
     points:
       - name: Centro

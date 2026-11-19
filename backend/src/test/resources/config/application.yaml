@@ -1,7 +1,10 @@
-# Solo para las pruebas. Spring Boot carga este archivo además de src/main/resources/application.yaml
-# y sus valores mandan.
+# Solo para las pruebas: Spring Boot lee classpath:/config/application.yaml después de
+# classpath:/application.yaml, así que estos valores ganan. Desactiva las ejecuciones periódicas
+# (y la carga de calles al arrancar) para que ninguna toque la base de datos ni llame a un proveedor
+# en mitad de una prueba. Las pruebas lanzan la ingesta ellas mismas.
 weather:
   heat:
-    # Sin refresco automático: una prueba que cruzara la hora en punto llamaría a Open-Meteo de
-    # verdad. Las pruebas lanzan la ingesta ellas mismas.
     refresco-cron: "-"
+    schedule:
+      generation: "-"
+      urban: "-"
