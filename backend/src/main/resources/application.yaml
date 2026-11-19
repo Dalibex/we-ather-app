@@ -48,7 +48,11 @@ weather:
       - name: Ciudad Jardín
         latitude: 36.7390
         longitude: -4.4300
-        
+
+  reportes:
+    # Cuántos reportes equivalentes vale la estimación meteorológica de una zona (T-17.3).
+    peso-estimacion: 5
+
   teselas:
     # Proveedor de las teselas del mapa base. OpenStreetMap exige un User-Agent que identifique a
     # la aplicación (https://operations.osmfoundation.org/policies/tiles/).
