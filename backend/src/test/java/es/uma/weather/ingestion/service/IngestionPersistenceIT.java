@@ -3,8 +3,11 @@ package es.uma.weather.ingestion.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import es.uma.weather.TestcontainersConfiguration;
+import es.uma.weather.heatmap.controller.HeatmapController;
+import es.uma.weather.heatmap.dto.HeatCellDto;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.Dispatcher;
@@ -31,6 +34,7 @@ class IngestionPersistenceIT {
     @Autowired private WeatherIngestionService weatherIngestionService;
     @Autowired private UrbanDataIngestionService urbanDataIngestionService;
     @Autowired private JdbcTemplate jdbcTemplate;
+    @Autowired private HeatmapController heatmapController;
 
     private static MockWebServer startMockWebServer() {
         try {
@@ -74,6 +78,9 @@ class IngestionPersistenceIT {
     /** Si es cierto, el falso Open-Meteo tarda más que el tiempo máximo de lectura. */
     private volatile boolean openMeteoNoResponde;
 
+    /** Si es cierto, el falso Open-Meteo responde con un error 500. */
+    private volatile boolean openMeteoFalla;
+
     @BeforeEach
     void cleanDatabaseAndConfigureHttpResponses() throws InterruptedException {
         jdbcTemplate.update("DELETE FROM weather_observations");
@@ -84,6 +91,7 @@ class IngestionPersistenceIT {
         }
         overpassResponse = respuesta(via(987654L, "residential", "Calle de prueba"));
         openMeteoNoResponde = false;
+        openMeteoFalla = false;
 
         MOCK_WEB_SERVER.setDispatcher(
                 new Dispatcher() {
@@ -91,6 +99,10 @@ class IngestionPersistenceIT {
                     public MockResponse dispatch(RecordedRequest request) {
                         // getPath() includes the query string; compare only the path.
                         String path = request.getRequestUrl().encodedPath();
+
+                        if ("/v1/forecast".equals(path) && openMeteoFalla) {
+                            return new MockResponse().setResponseCode(500);
+                        }
 
                         if ("/v1/forecast".equals(path)) {
                             return new MockResponse()
@@ -159,6 +171,25 @@ class IngestionPersistenceIT {
         assertThat(((Number) observation.get("longitude")).doubleValue()).isEqualTo(-4.42);
         assertThat(((Number) observation.get("latitude")).doubleValue()).isEqualTo(36.72);
         assertThat(((Number) observation.get("heat_score")).doubleValue()).isBetween(0.0, 100.0);
+    }
+
+    @Test
+    void siOpenMeteoFallaElMapaDeCalorSigueConElUltimoDatoValido() {
+        // HU-20: si una API falla, se usa el último dato válido guardado (T-20.1).
+        assertThat(weatherIngestionService.ingest()).isEqualTo(1);
+        openMeteoFalla = true;
+
+        assertThat(weatherIngestionService.ingest()).isZero();
+
+        List<HeatCellDto> mapa = heatmapController.getLatestHeatmap(36.68, 36.78, -4.52, -4.35);
+        assertThat(mapa)
+                .singleElement()
+                .satisfies(
+                        celda -> {
+                            assertThat(celda.temperatureC()).isEqualTo(34.0);
+                            assertThat(celda.observedAt())
+                                    .isEqualTo(Instant.parse("2026-07-20T11:00:00Z"));
+                        });
     }
 
     @Test

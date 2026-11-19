@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.springframework.boot.context.properties.bind.PropertySourcesPlacehold
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.support.CronExpression;
 
 /** La configuración de application.yaml basta para que la ingesta trabaje sobre Málaga. */
 class HeatIngestionConfigurationTest {
@@ -49,6 +51,18 @@ class HeatIngestionConfigurationTest {
                 .isPositive();
         assertThat(binder.bind("spring.http.clients.read-timeout", Duration.class).get())
                 .isPositive();
+    }
+
+    @Test
+    void refrescaElTiempoCadaHoraEnPunto() {
+        // HU-20: los datos meteorológicos se consultan cada hora (T-20.1).
+        CronExpression cron =
+                CronExpression.parse(binder.bind("weather.heat.refresco-cron", String.class).get());
+        LocalDateTime diezYMedia = LocalDateTime.of(2026, 7, 20, 10, 30);
+
+        assertThat(cron.next(diezYMedia)).isEqualTo(LocalDateTime.of(2026, 7, 20, 11, 0));
+        assertThat(cron.next(LocalDateTime.of(2026, 7, 20, 11, 0)))
+                .isEqualTo(LocalDateTime.of(2026, 7, 20, 12, 0));
     }
 
     @Test
