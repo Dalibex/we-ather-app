@@ -32,7 +32,13 @@ class SecurityConfig {
     SecurityFilterChain securityFilterChain(
             HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
 
-        http.csrf(csrf -> csrf.disable())
+        http.csrf(
+                        csrf ->
+                                csrf.ignoringRequestMatchers(
+                                        "/actuator/health/**",
+                                        "/api/v1/teselas/**",
+                                        "/usuarios/registro",
+                                        "/usuarios/login"))
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(
