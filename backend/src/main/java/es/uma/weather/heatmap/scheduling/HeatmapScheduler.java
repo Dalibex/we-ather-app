@@ -51,9 +51,15 @@ public class HeatmapScheduler {
         if (Scheduled.CRON_DISABLED.equals(urbanCron)) {
             return;
         }
-        if (urbanDataIngestionService.isOutdated()) {
-            LOGGER.info("Calles ausentes o desactualizadas: se cargan al arrancar");
-            urbanDataIngestionService.ingest();
+        // Best effort: an exception thrown from an ApplicationReadyEvent listener would make Spring
+        // Boot close the context and stop the server; the weekly cron retries anyway.
+        try {
+            if (urbanDataIngestionService.isOutdated()) {
+                LOGGER.info("Calles ausentes o desactualizadas: se cargan al arrancar");
+                urbanDataIngestionService.ingest();
+            }
+        } catch (RuntimeException exception) {
+            LOGGER.warn("No se pudieron comprobar o cargar las calles al arrancar", exception);
         }
     }
 }
