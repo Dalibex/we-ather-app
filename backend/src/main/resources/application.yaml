@@ -10,6 +10,14 @@ spring:
       # El esquema solo lo cambia Flyway (src/main/resources/db/migration); Hibernate solo valida.
       ddl-auto: validate
 
+  # Tiempo máximo de espera de las peticiones a Open-Meteo y Overpass (RestClient). Sin él, un
+  # proveedor que no responde dejaría la ingesta esperando indefinidamente. La lectura admite la
+  # consulta de Overpass, que puede tardar hasta 60 s ([timeout:60]).
+  http:
+    clients:
+      connect-timeout: 10s
+      read-timeout: 90s
+
 # Ingesta de datos para el mapa de calor (HeatIngestionProperties). Se lanza a mano con
 # POST /api/ingestion/weather y POST /api/ingestion/urban.
 weather:
@@ -20,6 +28,9 @@ weather:
     overpass-url: https://overpass-api.de/api/interpreter
     # Recuadro de Málaga para Overpass: sur, oeste, norte, este.
     overpass-bbox: 36.65,-4.55,36.78,-4.33
+    # Con él se identifica el servidor ante Open-Meteo y Overpass, como pide la política de uso de
+    # Overpass. Es el mismo que el de las teselas.
+    user-agent: ${weather.teselas.user-agent}
     # Puntos de la ciudad donde se consulta el tiempo; cada uno es una petición a Open-Meteo.
     points:
       - name: Centro
@@ -37,6 +48,10 @@ weather:
       - name: Ciudad Jardín
         latitude: 36.7390
         longitude: -4.4300
+
+  reportes:
+    # Cuántos reportes equivalentes vale la estimación meteorológica de una zona (T-17.3).
+    peso-estimacion: 5
 
   teselas:
     # Proveedor de las teselas del mapa base. OpenStreetMap exige un User-Agent que identifique a

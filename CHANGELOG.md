@@ -31,6 +31,9 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   OpenStreetMap bloquea las peticiones directas desde Android (T-05.2).
 - App móvil: la atribución de OpenStreetMap y el logo del mapa se colocan por encima de los botones
   de navegación del sistema, para que se lean y se puedan pulsar (T-05.2).
+- App móvil: guarda localmente las teselas; al volver a solicitar una que tenga más de siete días,
+  la muestra mientras intenta actualizarla. Errores HTTP no pisan teselas válidas y Android limita
+  los reintentos automáticos de fallos de red (T-05.4).
 - App móvil: el mapa se limita a Málaga. No se puede alejar más allá de lo que ocupa la ciudad y,
   si se arrastra fuera, vuelve al borde de Málaga al soltarlo (T-05.3).
 - App móvil: el mapa muestra la atribución de todos los proveedores de datos (OpenStreetMap,
@@ -42,12 +45,20 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   tiempo de cinco puntos de Málaga (Open-Meteo) y `POST /api/ingestion/urban` guarda las calles
   (OpenStreetMap, Overpass), las dos con autenticación. `GET /api/heatmap` devuelve la última
   observación de cada punto. Fuentes y frecuencias en `docs/fuentes-datos.md` (T-17.1).
+- Servidor: la ingesta meteorológica guarda también la nubosidad (`cloud_cover`) de cada punto.
+  Las peticiones a Open-Meteo y Overpass se identifican con el `User-Agent` de WEather y tienen un
+  tiempo máximo de espera (`spring.http.clients` en `application.yaml`), para que un proveedor que
+  no responde no deje la ingesta colgada (T-17.2).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).
 - App móvil: pantalla de registro con correo, contraseña y la confirmación de tener 14 años o más y
   haber leído la política de privacidad, con un enlace para leerla. Todavía no valida ni envía los
   datos (HU-01, T-01.1).
+- App móvil: el registro valida el formulario al pulsar «Crear cuenta»: un correo con formato
+  correcto, una contraseña de al menos 8 caracteres y la casilla de edad y política marcada. Los
+  errores aparecen bajo cada campo, el lector de pantalla los anuncia y desaparecen al corregir el
+  campo. Si el correo ya está registrado lo dirá el servidor (HU-01, T-01.3).
 - App móvil: pantalla de inicio de sesión con correo y contraseña. Todavía no autentica ni envía las
   credenciales al servidor (HU-02, T-02.1).
 - App móvil: el registro y el inicio de sesión se enlazan entre sí y conservan el correo escrito al

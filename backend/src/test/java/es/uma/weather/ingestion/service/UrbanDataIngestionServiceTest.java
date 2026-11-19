@@ -8,7 +8,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import es.uma.weather.heatmap.config.HeatIngestionProperties;
@@ -42,6 +44,7 @@ class UrbanDataIngestionServiceTest {
                         "https://open-meteo.test",
                         "https://overpass.test/api/interpreter",
                         "36.6,-4.6,36.8,-4.3",
+                        "WEather/test",
                         List.of());
         service =
                 new UrbanDataIngestionService(
@@ -58,6 +61,7 @@ class UrbanDataIngestionServiceTest {
     @Test
     void transformaLaGeometriaDeOverpassEnUnTramoPostgis() {
         server.expect(requestTo("https://overpass.test/api/interpreter"))
+                .andExpect(header("User-Agent", "WEather/test"))
                 .andRespond(
                         withSuccess(
                                 """
@@ -133,6 +137,34 @@ class UrbanDataIngestionServiceTest {
     }
 
     @Test
+    void devuelveCeroSinTocarLasCallesSiOverpassFalla() {
+        // Igual que la ingesta meteorológica: un fallo del proveedor no sale como excepción, para
+        // que el endpoint responda 503 y la tarea periódica (T-17.4) solo tenga que mirar el
+        // número.
+        server.expect(requestTo("https://overpass.test/api/interpreter"))
+                .andRespond(withServerError());
+
+        assertEquals(0, service.ingest());
+
+        server.verify();
+        verifyNoInteractions(jdbcTemplate);
+    }
+
+    @Test
+    void devuelveCeroSinTocarLasCallesSiLaRespuestaNoEsJson() {
+        server.expect(requestTo("https://overpass.test/api/interpreter"))
+                .andRespond(
+                        withSuccess(
+                                "<html>Too Many Requests</html>",
+                                org.springframework.http.MediaType.TEXT_HTML));
+
+        assertEquals(0, service.ingest());
+
+        server.verify();
+        verifyNoInteractions(jdbcTemplate);
+    }
+
+    @Test
     void noTocaLasCallesSiOverpassNoDevuelveNingunaVia() {
         // Una respuesta sin vías nunca es Málaga: retirar las que faltan las borraría todas.
         server.expect(requestTo("https://overpass.test/api/interpreter"))
@@ -156,6 +188,7 @@ class UrbanDataIngestionServiceTest {
                         "https://open-meteo.test",
                         "https://overpass.test/api/interpreter",
                         "36.6,-4.6,36.8,-4.3",
+                        "WEather/test",
                         List.of());
         UrbanDataIngestionService limitedService =
                 new UrbanDataIngestionService(

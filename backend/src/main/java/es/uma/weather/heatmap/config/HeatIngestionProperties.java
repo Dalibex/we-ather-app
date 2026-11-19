@@ -5,7 +5,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "weather.heat")
 public record HeatIngestionProperties(
-        String openMeteoUrl, String overpassUrl, String overpassBbox, List<GridPoint> points) {
+        String openMeteoUrl,
+        String overpassUrl,
+        String overpassBbox,
+        String userAgent,
+        List<GridPoint> points) {
 
     public HeatIngestionProperties {
         points = points == null ? List.of() : List.copyOf(points);

@@ -36,7 +36,8 @@ public class WeatherIngestionService {
             HeatIngestionProperties properties,
             HeatScoreCalculator heatScoreCalculator,
             LimitadorPeticiones limitadorPeticiones) {
-        this.restClient = restClientBuilder.build();
+        this.restClient =
+                restClientBuilder.defaultHeader("User-Agent", properties.userAgent()).build();
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
         this.properties = properties;
@@ -75,7 +76,9 @@ public class WeatherIngestionService {
                 UriComponentsBuilder.fromUriString(properties.openMeteoUrl())
                         .queryParam("latitude", point.latitude())
                         .queryParam("longitude", point.longitude())
-                        .queryParam("current", "temperature_2m,relative_humidity_2m,wind_speed_10m")
+                        .queryParam(
+                                "current",
+                                "temperature_2m,relative_humidity_2m,wind_speed_10m,cloud_cover")
                         .queryParam("hourly", "shortwave_radiation,uv_index")
                         .queryParam("timezone", "Europe/Madrid")
                         .build()
@@ -87,6 +90,7 @@ public class WeatherIngestionService {
         double temperature = requireNumber(current, "temperature_2m");
         double humidity = requireNumber(current, "relative_humidity_2m");
         double wind = requireNumber(current, "wind_speed_10m");
+        double cloudCover = requireNumber(current, "cloud_cover");
         JsonNode offsetNode = root.path("utc_offset_seconds");
         JsonNode timeNode = current.path("time");
         if (!offsetNode.isNumber() || !timeNode.isString()) {
@@ -109,15 +113,16 @@ public class WeatherIngestionService {
                 """
                 INSERT INTO weather_observations
                     (source, grid_name, latitude, longitude, observed_at,
-                     temperature_c, relative_humidity_pct, wind_speed_kmh,
+                     temperature_c, relative_humidity_pct, wind_speed_kmh, cloud_cover_pct,
                      shortwave_radiation_wm2, uv_index, heat_score, heat_level, location)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography)
                 ON CONFLICT (source, latitude, longitude, observed_at)
                 DO UPDATE SET
                     temperature_c = EXCLUDED.temperature_c,
                     relative_humidity_pct = EXCLUDED.relative_humidity_pct,
                     wind_speed_kmh = EXCLUDED.wind_speed_kmh,
+                    cloud_cover_pct = EXCLUDED.cloud_cover_pct,
                     shortwave_radiation_wm2 = EXCLUDED.shortwave_radiation_wm2,
                     uv_index = EXCLUDED.uv_index,
                     heat_score = EXCLUDED.heat_score,
@@ -133,6 +138,7 @@ public class WeatherIngestionService {
                 temperature,
                 humidity,
                 wind,
+                cloudCover,
                 radiation,
                 uv,
                 score,

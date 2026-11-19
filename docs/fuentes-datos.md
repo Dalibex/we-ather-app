@@ -15,6 +15,7 @@ Este documento define las fuentes de datos abiertas utilizadas por WEather, el p
   - Temperatura a 2 metros.
   - Humedad relativa.
   - Velocidad del viento a 10 metros.
+  - Nubosidad total (%).
   - Radiación solar de onda corta.
   - Índice ultravioleta (UV).
 - **Cobertura inicial:** cinco puntos geográficos de Málaga:
@@ -39,7 +40,17 @@ La consulta utiliza la zona horaria `Europe/Madrid`. Cada punto se consulta medi
 - **Almacenamiento:** los segmentos se guardan en PostgreSQL/PostGIS como geometrías espaciales.
 - **Frecuencia propuesta:** una actualización cada siete días.
 
-La consulta actual no solicita `cloud_cover`. Se utiliza la radiación solar de onda corta (`shortwave_radiation`), que ya refleja el efecto de la nubosidad sobre la radiación que llega a la superficie; no se almacena una variable independiente de cobertura nubosa en esta iteración.
+La nubosidad (`cloud_cover`) se guarda con cada observación, pero no entra en el cálculo de la puntuación de exposición: ese cálculo usa la radiación solar de onda corta (`shortwave_radiation`), que ya refleja el efecto de las nubes sobre la radiación que llega a la superficie.
+
+### 2.3. Reportes de los usuarios
+
+- **Fuente:** los reportes que envían los usuarios registrados, con una valoración de sensación térmica de 1 (fresco) a 5 (mucho calor) sobre un punto de Málaga.
+- **Qué reportes cuentan:** solo los validados y vigentes. El algoritmo de combinación los recibe sin autor, identificador ni hora.
+- **Combinación** (`ReportCombiner`, T-17.3):
+  - Cada reporte cuenta en la zona más cercana de las que recibe el algoritmo (con T-17.4, los puntos de `weather.heat.points`). En caso de empate, cuenta en la primera.
+  - Su valoración se pasa a la escala 0-100 del índice de exposición: `s = (valoración − 1) · 25`.
+  - El calor de la zona se ajusta con una media ponderada, redondeada a un decimal: `(k · estimación + Σ s) / (k + n)`. Aquí `n` es el número de reportes de la zona y `k` (`weather.reportes.peso-estimacion`, fijado a 5 en `application.yaml`) indica cuántos reportes equivalentes vale la estimación meteorológica. Un reporte aislado no arrastra la zona; muchos reportes coherentes sí la mueven. Con `k` igual o menor que 0 (o si falta la propiedad), la aplicación no arranca.
+- **Pendiente:** guardar los reportes (T-12.2), filtrar los validados y vigentes (T-19.2) y aplicar la combinación en la generación periódica del mapa de calor (T-17.4). El sentido de la escala, el reparto por zona más cercana y el valor de `k` están pendientes de confirmación por el Product Owner.
 
 ## 3. Procedimiento de obtención
 
@@ -72,11 +83,12 @@ La incorporación de un planificador automático queda pendiente de aprobación 
 
 ## 5. Gestión de errores y uso responsable
 
-- En Open-Meteo se exige que temperatura, humedad, viento, radiación, UV, hora de observación y desfase UTC estén presentes y tengan el tipo esperado. Los campos numéricos ausentes o nulos provocan el rechazo de ese punto; no se convierten implícitamente en `0.0`.
+- En Open-Meteo se exige que temperatura, humedad, viento, nubosidad, radiación, UV, hora de observación y desfase UTC estén presentes y tengan el tipo esperado. Los campos numéricos ausentes o nulos provocan el rechazo de ese punto; no se convierten implícitamente en `0.0`.
 - La ingesta meteorológica procesa cada punto de forma independiente: si una respuesta falla o está incompleta, no se guarda esa observación y se conserva la última observación válida ya almacenada.
 - La ingesta urbana sustituye las calles enteras o no cambia nada. Overpass responde `200` aunque la consulta se quede sin tiempo o sin memoria, y lo indica con el campo `remark`; esa respuesta incompleta se descarta, igual que una sin ninguna vía válida, y se conservan las calles anteriores. Una respuesta completa se guarda en una sola transacción, que también retira las vías que ya no están en OpenStreetMap; si algo falla, se deshace y quedan las calles anteriores.
 - Antes de cada petición, ambos servicios consultan `LimitadorPeticiones`, configurado en `weather.proveedores.limites`. Si se alcanza el límite de Open-Meteo, se omite ese punto; si se alcanza el de Overpass, no se solicita la actualización urbana.
 - Overpass tiene un límite provisional configurado de dos peticiones por día, pendiente de confirmación por el Product Owner.
+- Las peticiones a ambos proveedores se identifican con el `User-Agent` de WEather (`weather.heat.user-agent`) y tienen un tiempo máximo de conexión (10 s) y de lectura (90 s, porque la consulta de Overpass puede tardar hasta 60 s), configurados en `spring.http.clients`. Una petición que los supera cuenta como un error de ese punto o de esa actualización.
 - Los errores por punto quedan registrados en el log. Las respuestas HTTP no satisfactorias o no procesables no deben generar observaciones válidas.
 - Los servicios devuelven el número de registros guardados. Los endpoints manuales responden `200` con estado `completed` si guardan al menos un registro y `503` con estado `failed` si no se guarda ninguno.
 - Las consultas se limitan al área geográfica y a las variables necesarias para la aplicación.
