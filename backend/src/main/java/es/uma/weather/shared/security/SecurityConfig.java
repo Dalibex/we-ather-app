@@ -2,6 +2,7 @@ package es.uma.weather.shared.security;
 
 import es.uma.weather.usuarios.registro.JwtAuthenticationFilter;
 import jakarta.servlet.DispatcherType;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,6 +30,19 @@ class SecurityConfig {
     AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
             throws Exception {
         return configuration.getAuthenticationManager();
+    }
+
+    /**
+     * Evita que Spring Boot registre el filtro JWT como filtro del servidor, porque es un
+     * {@code @Component}: solo debe ejecutarse dentro de la cadena de Spring Security.
+     */
+    @Bean
+    FilterRegistrationBean<JwtAuthenticationFilter> registroFiltroJwtFueraDeSeguridad(
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
+        FilterRegistrationBean<JwtAuthenticationFilter> registro =
+                new FilterRegistrationBean<>(jwtAuthenticationFilter);
+        registro.setEnabled(false);
+        return registro;
     }
 
     @Bean

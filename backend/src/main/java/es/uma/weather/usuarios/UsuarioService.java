@@ -1,5 +1,6 @@
 package es.uma.weather.usuarios;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.regex.Pattern;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 public class UsuarioService implements UserDetailsService {
 
     private static final int LONGITUD_MINIMA_CONTRASENA = 8;
+    // BCrypt no admite contraseñas de más de 72 bytes (en UTF-8, una tilde ocupa 2 y un emoji 4).
+    private static final int MAXIMO_BYTES_CONTRASENA = 72;
     private static final int LONGITUD_MAXIMA_CORREO = 254;
     private static final Pattern FORMATO_CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
     private static final String RESTRICCION_CORREO_UNICO = "usuarios_correo_unico";
@@ -57,6 +60,10 @@ public class UsuarioService implements UserDetailsService {
 
         if (contrasena.codePointCount(0, contrasena.length()) < LONGITUD_MINIMA_CONTRASENA) {
             throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres");
+        }
+
+        if (contrasena.getBytes(StandardCharsets.UTF_8).length > MAXIMO_BYTES_CONTRASENA) {
+            throw new IllegalArgumentException("La contraseña es demasiado larga");
         }
 
         validarCorreo(correo);

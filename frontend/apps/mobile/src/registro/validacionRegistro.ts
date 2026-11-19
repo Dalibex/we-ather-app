@@ -5,6 +5,10 @@ export type ErroresRegistro = Partial<Record<keyof DatosRegistro, string>>;
 
 export const LONGITUD_MINIMA_CONTRASENA = 8;
 
+// El servidor cifra la contraseña con BCrypt, que no admite más de 72 bytes en UTF-8 (una tilde
+// ocupa 2 y un emoji 4). Es la misma regla que aplica el servidor (T-01.2).
+const MAXIMO_BYTES_CONTRASENA = 72;
+
 // Algo antes y después de una sola «@», sin espacios, y un dominio con punto. Si el correo existe
 // de verdad, o si ya está registrado, lo comprueba el servidor (T-01.2).
 const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,6 +34,8 @@ export function validarRegistro({
     errores.contrasena = 'Escribe una contraseña';
   } else if ([...contrasena].length < LONGITUD_MINIMA_CONTRASENA) {
     errores.contrasena = `La contraseña debe tener al menos ${LONGITUD_MINIMA_CONTRASENA} caracteres`;
+  } else if (new TextEncoder().encode(contrasena).length > MAXIMO_BYTES_CONTRASENA) {
+    errores.contrasena = 'La contraseña es demasiado larga';
   }
 
   if (!confirmaEdadYPolitica) {
