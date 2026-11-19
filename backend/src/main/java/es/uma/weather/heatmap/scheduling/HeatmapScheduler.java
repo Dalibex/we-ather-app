@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,14 +19,17 @@ public class HeatmapScheduler {
 
     private final HeatmapGenerator heatmapGenerator;
     private final UrbanDataIngestionService urbanDataIngestionService;
+    private final TaskScheduler taskScheduler;
     private final String urbanCron;
 
     public HeatmapScheduler(
             HeatmapGenerator heatmapGenerator,
             UrbanDataIngestionService urbanDataIngestionService,
+            TaskScheduler taskScheduler,
             @Value("${weather.heat.schedule.urban}") String urbanCron) {
         this.heatmapGenerator = heatmapGenerator;
         this.urbanDataIngestionService = urbanDataIngestionService;
+        this.taskScheduler = taskScheduler;
         this.urbanCron = urbanCron;
     }
 
@@ -40,6 +44,9 @@ public class HeatmapScheduler {
     public void refreshUrbanData() {
         urbanDataIngestionService.ingest();
     }
+
+    /** Al arrancar, programa {@link #refreshUrbanDataIfOutdated()} en el planificador. */
+    public void scheduleUrbanRefreshOnStartup() {}
 
     /**
      * Al arrancar, carga las calles si faltan o están desactualizadas: un cron no recupera las

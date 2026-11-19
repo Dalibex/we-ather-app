@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.task.TaskSchedulingAutoConfiguration;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
 import org.springframework.boot.env.YamlPropertySourceLoader;
@@ -30,6 +32,8 @@ class HeatmapSchedulingConfigurationTest {
 
     private final ApplicationContextRunner contextRunner =
             new ApplicationContextRunner()
+                    // Da el TaskScheduler que usa HeatmapScheduler, como en la aplicación.
+                    .withConfiguration(AutoConfigurations.of(TaskSchedulingAutoConfiguration.class))
                     .withUserConfiguration(SchedulingConfig.class, HeatmapScheduler.class)
                     .withBean(HeatmapGenerator.class, () -> mock(HeatmapGenerator.class))
                     .withBean(

@@ -2,6 +2,7 @@ package es.uma.weather.heatmap.scheduling;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -11,13 +12,16 @@ import static org.mockito.Mockito.when;
 
 import es.uma.weather.heatmap.service.HeatmapGenerator;
 import es.uma.weather.ingestion.service.UrbanDataIngestionService;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.scheduling.TaskScheduler;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("HeatmapScheduler: qué hace cada tarea periódica cuando se dispara")
@@ -28,9 +32,31 @@ class HeatmapSchedulerTest {
 
     @Mock private HeatmapGenerator heatmapGenerator;
     @Mock private UrbanDataIngestionService urbanDataIngestionService;
+    @Mock private TaskScheduler taskScheduler;
 
     private HeatmapScheduler schedulerWithUrbanCron(String urbanCron) {
-        return new HeatmapScheduler(heatmapGenerator, urbanDataIngestionService, urbanCron);
+        return new HeatmapScheduler(
+                heatmapGenerator, urbanDataIngestionService, taskScheduler, urbanCron);
+    }
+
+    @Test
+    @DisplayName(
+            "Mock: al arrancar programa en el planificador la carga de calles, sin hacerla en el"
+                    + " hilo principal")
+    void scheduleUrbanRefreshOnStartup_whenReady_schedulesTheRefreshInTheTaskScheduler() {
+        // Arrange
+        when(urbanDataIngestionService.isOutdated()).thenReturn(true);
+        HeatmapScheduler scheduler = schedulerWithUrbanCron(URBAN_CRON_ENABLED);
+        ArgumentCaptor<Runnable> scheduled = ArgumentCaptor.forClass(Runnable.class);
+
+        // Act
+        scheduler.scheduleUrbanRefreshOnStartup();
+
+        // Assert
+        verify(urbanDataIngestionService, never()).ingest();
+        verify(taskScheduler).schedule(scheduled.capture(), any(Instant.class));
+        scheduled.getValue().run();
+        verify(urbanDataIngestionService).ingest();
     }
 
     @Test
