@@ -193,6 +193,14 @@ public class UrbanDataIngestionService {
         return wkt.append(')').toString();
     }
 
+    /**
+     * Indica si hay que volver a cargar las calles: no hay ninguna guardada o la última se
+     * actualizó hace más de siete días.
+     */
+    public boolean isOutdated() {
+        throw new UnsupportedOperationException("T-17.4: pendiente de implementar");
+    }
+
     /** Un tramo de calle leído de Overpass, listo para guardarse. */
     private record StreetSegment(long osmWayId, String highway, String name, String wkt) {}
 }
