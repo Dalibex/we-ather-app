@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import es.uma.weather.ingestion.controller.ManualIngestionController;
 import es.uma.weather.ingestion.service.UrbanDataIngestionService;
 import es.uma.weather.ingestion.service.WeatherIngestionService;
+import es.uma.weather.usuarios.UsuarioService;
+import es.uma.weather.usuarios.registro.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -28,10 +30,15 @@ class ManualIngestionSecurityTest {
     @MockitoBean private WeatherIngestionService weatherIngestionService;
     @MockitoBean private UrbanDataIngestionService urbanDataIngestionService;
 
+    // Dependencias utilizadas por la autenticación JWT.
+    @MockitoBean private JwtService jwtService;
+    @MockitoBean private UsuarioService usuarioService;
+
     @Test
     @WithMockUser
     void unPostAutenticadoLanzaLaIngestaMeteorologica() throws Exception {
         when(weatherIngestionService.ingest()).thenReturn(1);
+
         mvc.perform(post("/api/ingestion/weather"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("completed"))

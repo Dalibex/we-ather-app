@@ -56,6 +56,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 - Servidor: el tiempo de Open-Meteo se refresca solo cada hora en punto (`weather.heat.refresco-cron`
   en `application.yaml`). Si Open-Meteo falla, `GET /api/heatmap` sigue devolviendo la última
   observación válida de cada punto (T-20.1).
+- Servidor: registro de usuarios con `POST /api/v1/usuarios`, público. Guarda el correo normalizado y
+  la contraseña cifrada con BCrypt, y responde `201`. Valida lo mismo que la app (correo con formato
+  válido y de hasta 254 caracteres, contraseña de al menos 8 y la casilla de privacidad marcada), y
+  además rechaza las contraseñas de más de 72 bytes, el máximo que admite BCrypt: si
+  algo falla responde `400` y, si el correo ya tiene cuenta, `409`, los dos con un cuerpo
+  `{codigo, mensaje}`. Las rutas protegidas
+  piden un token JWT (`Authorization: Bearer`) firmado con la clave de `JWT_SECRET`, que sustituye a
+  la autenticación HTTP Basic; el inicio de sesión que entrega el token llega con la T-02.3 (T-01.2).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).
@@ -63,7 +71,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   haber leído la política de privacidad, con un enlace para leerla. Todavía no valida ni envía los
   datos (HU-01, T-01.1).
 - App móvil: el registro valida el formulario al pulsar «Crear cuenta»: un correo con formato
-  correcto, una contraseña de al menos 8 caracteres y la casilla de edad y política marcada. Los
+  correcto, una contraseña de al menos 8 caracteres y de no más de 72 bytes (el máximo que admite el
+  servidor, T-01.2) y la casilla de edad y política marcada. Los
   errores aparecen bajo cada campo, el lector de pantalla los anuncia y desaparecen al corregir el
   campo. Si el correo ya está registrado lo dirá el servidor (HU-01, T-01.3).
 - App móvil: pantalla de inicio de sesión con correo y contraseña. Todavía no autentica ni envía las

@@ -97,3 +97,7 @@ weather:
       overpass:
         max-peticiones: 2
         ventana: 1d
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}

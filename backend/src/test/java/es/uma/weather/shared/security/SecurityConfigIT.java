@@ -1,12 +1,16 @@
 package es.uma.weather.shared.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import es.uma.weather.usuarios.registro.JwtAuthenticationFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class SecurityConfigIT {
 
     @Autowired private MockMvc mvc;
+    @Autowired private ApplicationContext context;
 
     @Test
     void elHealthCheckEsPublico() throws Exception {
@@ -32,5 +37,15 @@ class SecurityConfigIT {
     @Test
     void elRestoDeRutasPideAutenticacion() throws Exception {
         mvc.perform(get("/api/v1/rutas")).andExpect(status().isUnauthorized());
+    }
+
+    // Como el filtro JWT es un @Component, Spring Boot también lo registraría como filtro del
+    // servidor, fuera de Spring Security. Solo debe ejecutarse dentro de la cadena de seguridad.
+    @Test
+    void elFiltroJwtSoloSeRegistraEnLaCadenaDeSeguridad() {
+        assertThat(context.getBeansOfType(FilterRegistrationBean.class).values())
+                .filteredOn(registro -> registro.getFilter() instanceof JwtAuthenticationFilter)
+                .singleElement()
+                .satisfies(registro -> assertThat(registro.isEnabled()).isFalse());
     }
 }
