@@ -54,6 +54,16 @@ describe('validarRegistro', () => {
     );
   });
 
+  it('rechaza una contraseña de más de 72 bytes, el máximo que admite el servidor', () => {
+    // Con tildes, 37 caracteres ya son 74 bytes.
+    expect(validarRegistro({ ...DATOS_VALIDOS, contrasena: 'á'.repeat(37) }).contrasena).toBe(
+      'La contraseña es demasiado larga',
+    );
+    expect(
+      validarRegistro({ ...DATOS_VALIDOS, contrasena: 'a'.repeat(72) }).contrasena,
+    ).toBeUndefined();
+  });
+
   it('exige confirmar la edad y la lectura de la política de privacidad', () => {
     expect(
       validarRegistro({ ...DATOS_VALIDOS, confirmaEdadYPolitica: false }).confirmaEdadYPolitica,

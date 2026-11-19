@@ -124,4 +124,23 @@ class UsuarioServiceTest {
                 .isInstanceOf(IllegalArgumentException.class);
         assertThat(servicio.registerUser(CORREO, ochoEmojis, true)).isNotNull();
     }
+
+    @Test
+    void rechazaUnaContrasenaDeMasDe72BytesEnUtf8() {
+        // BCrypt no admite más de 72 bytes: con tildes, 37 caracteres ya son 74 bytes.
+        String treintaYSieteTildes = "á".repeat(37);
+
+        assertThatThrownBy(() -> servicio.registerUser(CORREO, treintaYSieteTildes, true))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("La contraseña es demasiado larga");
+        verifyNoInteractions(passwordEncoder, repositorio);
+    }
+
+    @Test
+    void aceptaUnaContrasenaDeExactamente72Bytes() {
+        String setentaYDosBytes = "a".repeat(72);
+        when(passwordEncoder.encode(setentaYDosBytes)).thenReturn("hash");
+
+        assertThat(servicio.registerUser(CORREO, setentaYDosBytes, true)).isNotNull();
+    }
 }
