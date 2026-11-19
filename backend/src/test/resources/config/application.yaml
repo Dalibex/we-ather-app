@@ -7,3 +7,8 @@ weather:
     schedule:
       generation: "-"
       urban: "-"
+
+# Clave de firma de los JWT solo para las pruebas (Base64, más de 256 bits). NO es un secreto real:
+# en producción llega siempre por la variable de entorno JWT_SECRET.
+jwt:
+  secret: Y2xhdmUtc29sby1wYXJhLXBydWViYXMtbnVuY2EtdXNhci1lbi1wcm9kdWNjaW9uLTAxMjM0NTY3ODk=
