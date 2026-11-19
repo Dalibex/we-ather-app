@@ -2,6 +2,9 @@ package es.uma.weather.usuarios;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.regex.Pattern;
+import org.springframework.core.NestedExceptionUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,6 +14,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UsuarioService implements UserDetailsService {
+
+    private static final int LONGITUD_MINIMA_CONTRASENA = 8;
+    private static final int LONGITUD_MAXIMA_CORREO = 254;
+    private static final Pattern FORMATO_CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
+    private static final String RESTRICCION_CORREO_UNICO = "usuarios_correo_unico";
 
     private final UsuarioRepository repositorioUsuario;
     private final PasswordEncoder passwordEncoder;
@@ -47,8 +55,14 @@ public class UsuarioService implements UserDetailsService {
             throw new IllegalArgumentException("La contraseña es obligatoria");
         }
 
+        if (contrasena.codePointCount(0, contrasena.length()) < LONGITUD_MINIMA_CONTRASENA) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos 8 caracteres");
+        }
+
+        validarCorreo(correo);
+
         if (repositorioUsuario.existsByCorreo(correo)) {
-            throw new IllegalArgumentException("El correo ya está registrado");
+            throw new CorreoYaRegistradoException();
         }
 
         String hash = passwordEncoder.encode(contrasena);
@@ -59,8 +73,34 @@ public class UsuarioService implements UserDetailsService {
 
         Usuario nuevoUsuario = Usuario.crear(correo, hash, Instant.now());
 
-        repositorioUsuario.saveAndFlush(nuevoUsuario);
+        try {
+            repositorioUsuario.saveAndFlush(nuevoUsuario);
+        } catch (DataIntegrityViolationException e) {
+            if (!esCorreoDuplicado(e)) {
+                throw e;
+            }
+            // Otro registro con el mismo correo se coló entre la comprobación y el guardado.
+            throw new CorreoYaRegistradoException(e);
+        }
 
         return nuevoUsuario;
+    }
+
+    // Mismas reglas que la validación de la app móvil (validacionRegistro.ts).
+    private static void validarCorreo(Correo correo) {
+        String valor = correo.valor();
+
+        if (valor.length() > LONGITUD_MAXIMA_CORREO) {
+            throw new IllegalArgumentException("El correo no puede superar los 254 caracteres");
+        }
+
+        if (!FORMATO_CORREO.matcher(valor).matches()) {
+            throw new IllegalArgumentException("El correo no tiene un formato válido");
+        }
+    }
+
+    private static boolean esCorreoDuplicado(DataIntegrityViolationException e) {
+        String mensaje = NestedExceptionUtils.getMostSpecificCause(e).getMessage();
+        return mensaje != null && mensaje.contains(RESTRICCION_CORREO_UNICO);
     }
 }

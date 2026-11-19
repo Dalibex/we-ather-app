@@ -1,12 +1,15 @@
 package es.uma.weather.shared.security;
 
 import es.uma.weather.usuarios.registro.JwtAuthenticationFilter;
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,13 +35,9 @@ class SecurityConfig {
     SecurityFilterChain securityFilterChain(
             HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
 
-        http.csrf(
-                        csrf ->
-                                csrf.ignoringRequestMatchers(
-                                        "/actuator/health/**",
-                                        "/api/v1/teselas/**",
-                                        "/usuarios/registro",
-                                        "/usuarios/login"))
+        // La API no usa sesiones ni cookies: se autentica con un JWT en la cabecera
+        // Authorization, que el navegador no envía solo, así que CSRF no aplica.
+        http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(
@@ -47,11 +46,12 @@ class SecurityConfig {
                                         new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers(
-                                                "/actuator/health/**",
-                                                "/api/v1/teselas/**",
-                                                "/usuarios/registro",
-                                                "/usuarios/login")
+                                auth.dispatcherTypeMatchers(DispatcherType.ERROR)
+                                        .permitAll()
+                                        .requestMatchers(
+                                                "/actuator/health/**", "/api/v1/teselas/**")
+                                        .permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/api/v1/usuarios")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())

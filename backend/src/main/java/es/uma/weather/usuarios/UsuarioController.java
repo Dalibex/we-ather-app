@@ -1,28 +1,30 @@
 package es.uma.weather.usuarios;
 
-import es.uma.weather.usuarios.registro.AutenticacionService;
 import es.uma.weather.usuarios.registro.RegistroRequest;
 import es.uma.weather.usuarios.registro.RegistroResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/usuarios")
+@RequestMapping("/api/v1/usuarios")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-    private final AutenticacionService autenticacionService;
 
-    public UsuarioController(
-            UsuarioService usuarioService, AutenticacionService autenticacionService) {
-
+    public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
-        this.autenticacionService = autenticacionService;
     }
 
-    @PostMapping("/registro")
+    @PostMapping
     public ResponseEntity<RegistroResponse> registrar(@RequestBody RegistroRequest request) {
+
+        if (request.correo() == null) {
+            throw new IllegalArgumentException("El correo es obligatorio");
+        }
 
         Correo correo = new Correo(request.correo());
 
@@ -38,7 +40,4 @@ public class UsuarioController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
     }
-
-    // @PostMapping("/login") Para implementación del siguiente que venga ;)
-
 }
