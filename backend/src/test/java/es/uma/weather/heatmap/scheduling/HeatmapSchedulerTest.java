@@ -1,5 +1,9 @@
 package es.uma.weather.heatmap.scheduling;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -13,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("HeatmapScheduler: qué hace cada tarea periódica cuando se dispara")
@@ -97,6 +102,39 @@ class HeatmapSchedulerTest {
 
             // Assert
             verifyNoInteractions(urbanDataIngestionService);
+        }
+
+        @Test
+        @DisplayName("Stub: si falla la consulta a la base de datos, no propaga el error ni carga")
+        void refreshUrbanDataIfOutdated_isOutdatedThrows_doesNotPropagateNorIngest() {
+            // Arrange
+            when(urbanDataIngestionService.isOutdated())
+                    .thenThrow(new DataAccessResourceFailureException("db down"));
+            HeatmapScheduler scheduler = schedulerWithUrbanCron(URBAN_CRON_ENABLED);
+
+            // Act
+            Throwable thrown = catchThrowable(scheduler::refreshUrbanDataIfOutdated);
+
+            // Assert
+            assertThat(thrown).isNull();
+            verify(urbanDataIngestionService, never()).ingest();
+        }
+
+        @Test
+        @DisplayName("Stub: si falla la carga de las calles, no propaga el error")
+        void refreshUrbanDataIfOutdated_ingestThrows_doesNotPropagate() {
+            // Arrange
+            when(urbanDataIngestionService.isOutdated()).thenReturn(true);
+            doThrow(new IllegalStateException("overpass down"))
+                    .when(urbanDataIngestionService)
+                    .ingest();
+            HeatmapScheduler scheduler = schedulerWithUrbanCron(URBAN_CRON_ENABLED);
+
+            // Act
+            Throwable thrown = catchThrowable(scheduler::refreshUrbanDataIfOutdated);
+
+            // Assert
+            assertThat(thrown).isNull();
         }
     }
 }
