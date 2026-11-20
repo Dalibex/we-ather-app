@@ -88,7 +88,7 @@ Las tareas periódicas se ejecutan con expresiones cron de `application.yaml`, e
 
 - El mapa se genera en el minuto 15 para usar la observación de la hora en punto.
 - Un cron no recupera las ejecuciones que se pierden con el servidor apagado. Por eso, al arrancar, si no hay calles guardadas o la última se actualizó hace más de siete días, se cargan una vez.
-- `zone_heat` es el mapa de calor interno, una fila por zona. Guarda dos fechas: `generated_at` (cuándo se calculó) y `observed_at` (de cuándo es el dato meteorológico usado). Si la ingesta falla durante horas, el mapa se sigue generando con el último dato válido, y `observed_at` dice su antigüedad. El motor de rutas (T-17.5) decide qué hacer con un dato viejo.
+- `zone_heat` es el mapa de calor interno, una fila por zona. Guarda dos fechas: `generated_at` (cuándo se calculó) y `observed_at` (de cuándo es el dato meteorológico usado). Si la ingesta falla durante horas, el mapa se sigue generando con el último dato válido, y `observed_at` dice su antigüedad. El motor de rutas también usa el último mapa, sea cual sea su antigüedad (sección 8).
 - Con el valor `-`, una tarea queda desactivada, y la carga de calles al arrancar también. Las pruebas usan ese valor (`src/test/resources/config/application.yaml`).
 - Se supone una sola instancia del servidor: con varias, cada una ejecutaría las tareas por su cuenta.
 
@@ -118,3 +118,12 @@ La aplicación debe mostrar la atribución correspondiente cuando utilice o pres
 - Los datos urbanos dependen de los elementos disponibles en OpenStreetMap.
 - La información de calles obtenida mediante Overpass no garantiza por sí sola la disponibilidad de datos sobre árboles, sombra o zonas de refugio.
 - Cada zona es un punto de `weather.heat.points`, y cada reporte cuenta en la más cercana, sin distancia máxima. Si una zona no tiene observación, sus reportes pasan a la zona vecina.
+
+## 8. Uso del mapa de calor en el motor de rutas
+
+OSRM calcula las rutas sin tener en cuenta el calor; el servidor calcula después la exposición de cada alternativa con el mapa de calor interno (HU-08). Para ello lo lee con `HeatmapReader` (T-17.5):
+
+- `latest()` devuelve el último mapa guardado en `zone_heat` (`HeatmapSnapshot`): sus zonas con su índice de exposición (0-100), `generatedAt` (cuándo se generó) y `observedAt` (la observación meteorológica más antigua de sus zonas, que dice su edad). Si todavía no se ha generado ningún mapa, no devuelve nada, y el cálculo de rutas tiene que tratar ese caso.
+- `HeatmapSnapshot.heatAt(lat, lon)` da el calor de un punto: el de su zona más cercana, con la misma regla que los reportes (sección 2.3).
+- Nunca llama a los proveedores en la petición del usuario: solo lee la tabla.
+- No hay antigüedad máxima: con la ingesta caída se usa el último mapa válido, igual que en la generación (sección 4). Si hiciera falta avisar al usuario de un dato viejo, la información está en `observedAt`.
