@@ -1,5 +1,13 @@
-import { useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  AccessibilityInfo,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { MarcoAutenticacion } from '../components/MarcoAutenticacion';
 import { colores } from '../theme/colores';
@@ -24,6 +32,10 @@ export interface DatosRegistro {
 interface Props {
   /** Recibe los datos ya validados, con el correo sin espacios en los extremos, al pulsar «Crear cuenta». */
   onEnviar: (datos: DatosRegistro) => void;
+  /** Mensaje que se muestra si no se ha podido crear la cuenta, por ejemplo porque el correo ya existe. */
+  error?: string;
+  /** Mientras se espera al servidor, el botón no se puede volver a pulsar. */
+  enviando?: boolean;
   /** Vuelve a la pantalla anterior. */
   onVolver: () => void;
   /** Lleva al inicio de sesión, para quien ya tiene cuenta. */
@@ -37,12 +49,21 @@ interface Props {
 /** Pantalla de registro (HU-01): correo, contraseña, edad mínima y lectura de la política de privacidad. */
 export function PantallaRegistro({
   onEnviar,
+  error,
+  enviando = false,
   onVolver,
   onIniciarSesion,
   correoInicial = '',
   onCambiarCorreo,
 }: Props) {
   const [errores, setErrores] = useState<ErroresRegistro>({});
+
+  // En Android basta con la región viva del aviso; en iOS, VoiceOver solo lo lee si se anuncia.
+  useEffect(() => {
+    if (error) {
+      AccessibilityInfo.announceForAccessibility(error);
+    }
+  }, [error]);
   // El error de un campo desaparece en cuanto el usuario lo toca; se vuelve a validar al enviar.
   const borrarError = (campo: keyof ErroresRegistro) =>
     setErrores((anteriores) => ({ ...anteriores, [campo]: undefined }));
@@ -135,7 +156,15 @@ export function PantallaRegistro({
         <Text style={estilosLocal.enlacePoliticaTexto}>Leer la política de privacidad</Text>
       </Pressable>
 
-      <Pressable accessibilityRole="button" onPress={crearCuenta} style={estilos.boton}>
+      <MensajeError mensaje={error} />
+
+      <Pressable
+        accessibilityRole="button"
+        disabled={enviando}
+        accessibilityState={{ disabled: enviando, busy: enviando }}
+        onPress={crearCuenta}
+        style={[estilos.boton, enviando && estilosLocal.botonEnviando]}
+      >
         <Text style={estilos.textoBoton}>Crear cuenta</Text>
       </Pressable>
 
@@ -166,6 +195,9 @@ function MensajeError({ mensaje }: { mensaje?: string }) {
 
 /** Solo lo que es exclusivo del registro: la casilla, el enlace a la política y el del login. */
 const estilosLocal = StyleSheet.create({
+  botonEnviando: {
+    opacity: 0.6,
+  },
   campoConError: {
     borderColor: colores.error,
     marginBottom: 6,

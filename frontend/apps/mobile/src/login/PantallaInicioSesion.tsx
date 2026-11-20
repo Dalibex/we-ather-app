@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { MarcoAutenticacion } from '../components/MarcoAutenticacion';
 import { colores } from '../theme/colores';
@@ -14,6 +14,12 @@ export interface DatosInicioSesion {
 interface Props {
   /** Recibe los datos al pulsar «Iniciar sesión». Enviarlos al servidor no es cosa de esta pantalla. */
   onEnviar: (datos: DatosInicioSesion) => void;
+  /** Mensaje que se muestra si no se ha podido iniciar sesión, por ejemplo con credenciales incorrectas. */
+  error?: string;
+  /** Mientras se espera al servidor, el botón no se puede volver a pulsar. */
+  enviando?: boolean;
+  /** Aviso informativo encima del formulario, por ejemplo que la cuenta se acaba de crear. */
+  aviso?: string;
   /** Vuelve a la pantalla anterior. */
   onVolver: () => void;
   /** Lleva al registro, para quien todavía no tiene cuenta. */
@@ -27,6 +33,9 @@ interface Props {
 /** Pantalla de inicio de sesión (HU-02): correo y contraseña. */
 export function PantallaInicioSesion({
   onEnviar,
+  error,
+  enviando = false,
+  aviso,
   onVolver,
   onIrRegistro,
   correoInicial = '',
@@ -40,12 +49,30 @@ export function PantallaInicioSesion({
 
   const [contrasena, setContrasena] = useState('');
 
+  // En Android basta con la región viva del aviso; en iOS, VoiceOver solo lo lee si se anuncia.
+  useEffect(() => {
+    if (error) {
+      AccessibilityInfo.announceForAccessibility(error);
+    }
+  }, [error]);
+  useEffect(() => {
+    if (aviso) {
+      AccessibilityInfo.announceForAccessibility(aviso);
+    }
+  }, [aviso]);
+
   return (
     <MarcoAutenticacion
       titulo="Iniciar sesión"
       subtitulo="Tu próximo paseo, un poco más fresco"
       onVolver={onVolver}
     >
+      {aviso ? (
+        <Text accessibilityLiveRegion="polite" style={estilosLocal.aviso}>
+          {aviso}
+        </Text>
+      ) : null}
+
       <Text style={estilos.etiqueta}>Correo electrónico</Text>
       <TextInput
         accessibilityLabel="Correo electrónico"
@@ -85,10 +112,22 @@ export function PantallaInicioSesion({
         </Pressable>
       </View>
 
+      {error ? (
+        <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={estilosLocal.error}>
+          {error}
+        </Text>
+      ) : null}
+
       <Pressable
         accessibilityRole="button"
-        onPress={() => onEnviar({ correo, contrasena })}
-        style={estilos.boton}
+        disabled={enviando}
+        accessibilityState={{ disabled: enviando, busy: enviando }}
+        // No se devuelve la promesa de onEnviar: la pantalla no espera al servidor, solo lo indica
+        // con «enviando».
+        onPress={() => {
+          onEnviar({ correo, contrasena });
+        }}
+        style={[estilos.boton, enviando && estilosLocal.botonEnviando]}
       >
         <Text style={estilos.textoBoton}>Iniciar sesión</Text>
       </Pressable>
@@ -96,8 +135,24 @@ export function PantallaInicioSesion({
   );
 }
 
-/** Solo lo que es exclusivo del inicio de sesión: el enlace al registro. */
+/** Solo lo que es exclusivo del inicio de sesión: el enlace al registro y el aviso de error. */
 const estilosLocal = StyleSheet.create({
+  error: {
+    color: colores.error,
+    fontSize: 13,
+    marginBottom: 14,
+    textAlign: 'center',
+  },
+  aviso: {
+    color: colores.verde,
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 14,
+    textAlign: 'center',
+  },
+  botonEnviando: {
+    opacity: 0.6,
+  },
   campoContrasena: {
     marginBottom: 8,
   },

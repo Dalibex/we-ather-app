@@ -7,22 +7,30 @@ import { MapaBase } from './MapaBase';
 interface Props {
   /** Lleva al inicio de sesión a quien entró sin cuenta. */
   onIniciarSesion: () => void;
+  /**
+   * Cierra la sesión iniciada. Solo se pasa si hay sesión: entonces el botón sirve para cerrarla en
+   * lugar de para iniciarla.
+   */
+  onCerrarSesion?: () => void;
 }
 
-/** Pantalla del mapa: el mapa base de Málaga y un botón pequeño para iniciar sesión. */
-export function PantallaMapa({ onIniciarSesion }: Props) {
+/** Pantalla del mapa: el mapa base de Málaga y un botón pequeño para iniciar o cerrar sesión. */
+export function PantallaMapa({ onIniciarSesion, onCerrarSesion }: Props) {
   const margenes = useSafeAreaInsets();
+  const sesionIniciada = onCerrarSesion !== undefined;
 
   return (
     <View style={estilos.contenedor}>
       <MapaBase />
       <Pressable
         accessibilityRole="button"
-        onPress={onIniciarSesion}
+        onPress={onCerrarSesion ?? onIniciarSesion}
         style={[estilos.boton, { top: margenes.top + 8 }]}
         hitSlop={8}
       >
-        <Text style={estilos.textoBoton}>Iniciar sesión</Text>
+        <Text style={estilos.textoBoton}>
+          {sesionIniciada ? 'Cerrar sesión' : 'Iniciar sesión'}
+        </Text>
       </Pressable>
     </View>
   );
