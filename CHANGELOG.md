@@ -64,6 +64,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   `{codigo, mensaje}`. Las rutas protegidas
   piden un token JWT (`Authorization: Bearer`) firmado con la clave de `JWT_SECRET`, que sustituye a
   la autenticación HTTP Basic; el inicio de sesión que entrega el token llega con la T-02.3 (T-01.2).
+- Servidor: inicio de sesión con `POST /api/v1/sesiones`, público. Recibe `{correo, contrasena}` y,
+  si coinciden con una cuenta, responde `200` con `{token, tipo: "Bearer"}`. Si no coinciden,
+  responde `401` con el mismo mensaje genérico exista o no el correo, y si falta un dato, `400`. El
+  token lleva como sujeto el id del usuario y no su correo, porque cualquiera que lo tenga puede leer
+  su contenido; los tokens anteriores, con el correo, dejan de valer (HU-02, T-02.3).
 - App móvil: la app abre en una pantalla de bienvenida con «Iniciar sesión», «Crear cuenta» y
   «Continuar sin cuenta», que lleva al mapa. Desde el mapa, un botón pequeño abre el inicio de sesión
   (T-01.1).
