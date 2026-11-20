@@ -3,6 +3,7 @@ package es.uma.weather.usuarios;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import org.springframework.core.NestedExceptionUtils;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,6 +32,10 @@ public class UsuarioService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Para el inicio de sesión: busca la cuenta por correo. El nombre del usuario autenticado es su
+     * id, nunca su correo, para que el token no lleve datos personales.
+     */
     @Override
     public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
 
@@ -44,8 +49,25 @@ public class UsuarioService implements UserDetailsService {
                                         new UsernameNotFoundException(
                                                 "No existe ningún usuario con ese correo"));
 
+        return comoUserDetails(usuario);
+    }
+
+    /** Para las peticiones con token: busca la cuenta por el id que lleva el token. */
+    public UserDetails cargarPorId(UUID id) throws UsernameNotFoundException {
+        Usuario usuario =
+                repositorioUsuario
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new UsernameNotFoundException(
+                                                "No existe ningún usuario con ese id"));
+
+        return comoUserDetails(usuario);
+    }
+
+    private static UserDetails comoUserDetails(Usuario usuario) {
         return new User(
-                usuario.getCorreo().valor(), usuario.getHashContrasena(), Collections.emptyList());
+                usuario.getId().toString(), usuario.getHashContrasena(), Collections.emptyList());
     }
 
     public Usuario registerUser(Correo correo, String contrasena, boolean aceptaPrivacidad) {

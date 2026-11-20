@@ -1,5 +1,6 @@
 package es.uma.weather.usuarios.registro;
 
+import java.util.UUID;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,12 +19,19 @@ public class AutenticacionService {
         this.jwtService = jwtService;
     }
 
+    /**
+     * Comprueba el correo y la contraseña y devuelve un token para esa cuenta.
+     *
+     * @throws org.springframework.security.core.AuthenticationException si no coinciden con ninguna
+     *     cuenta
+     */
     public String autenticar(String correo, String contrasena) {
 
         Authentication authentication =
                 authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(correo, contrasena));
 
-        return jwtService.generateToken(authentication.getName());
+        // UsuarioService usa el id de la cuenta como nombre del usuario autenticado.
+        return jwtService.generateToken(UUID.fromString(authentication.getName()));
     }
 }

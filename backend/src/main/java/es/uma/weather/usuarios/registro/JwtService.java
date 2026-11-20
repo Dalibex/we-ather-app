@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -27,13 +28,17 @@ public final class JwtService {
         this.expiration = expiration;
     }
 
-    public String generateToken(String correo) {
+    /**
+     * Token firmado para el usuario con ese id. El sujeto es el id y no el correo: cualquiera que
+     * tenga el token puede leer su contenido (minimización, RGPD).
+     */
+    public String generateToken(UUID idUsuario) {
 
         Date ahora = new Date();
         Date expiracion = new Date(ahora.getTime() + expiration);
 
         return Jwts.builder()
-                .subject(correo)
+                .subject(idUsuario.toString())
                 .issuedAt(ahora)
                 .expiration(expiracion)
                 .signWith(signingKey)
@@ -41,10 +46,10 @@ public final class JwtService {
     }
 
     /**
-     * El correo (sujeto) del token, o vacío si el token no es válido: mal formado, con la firma
-     * falsificada, caducado o sin sujeto.
+     * El id del usuario (sujeto) del token, o vacío si el token no es válido: mal formado, con la
+     * firma falsificada, caducado, sin sujeto o con un sujeto que no es un id.
      */
-    public Optional<String> extractCorreo(String token) {
+    public Optional<UUID> extractIdUsuario(String token) {
         try {
             Claims claims =
                     Jwts.parser()
@@ -53,8 +58,9 @@ public final class JwtService {
                             .parseSignedClaims(token)
                             .getPayload();
             String sujeto = claims.getSubject();
-            return sujeto == null || sujeto.isBlank() ? Optional.empty() : Optional.of(sujeto);
+            return sujeto == null ? Optional.empty() : Optional.of(UUID.fromString(sujeto));
         } catch (JwtException | IllegalArgumentException e) {
+            // UUID.fromString lanza IllegalArgumentException si el sujeto no es un id.
             return Optional.empty();
         }
     }
