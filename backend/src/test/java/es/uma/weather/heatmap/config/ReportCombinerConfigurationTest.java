@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
 import es.uma.weather.heatmap.service.HeatmapGenerator;
+import es.uma.weather.heatmap.service.HeatmapReader;
 import es.uma.weather.heatmap.service.ReportCombiner;
 import es.uma.weather.heatmap.service.ValidatedReport;
 import es.uma.weather.heatmap.service.ZoneHeat;
@@ -26,7 +27,8 @@ class ReportCombinerConfigurationTest {
 
     /**
      * Escaneo con los filtros por defecto: solo recoge las clases anotadas como componente. Deja
-     * fuera HeatmapGenerator, que necesita la base de datos y no pinta nada en esta prueba.
+     * fuera HeatmapGenerator y HeatmapReader, que necesitan la base de datos y no pintan nada en
+     * esta prueba.
      */
     @Configuration
     @ComponentScan(
@@ -34,7 +36,7 @@ class ReportCombinerConfigurationTest {
             excludeFilters =
                     @ComponentScan.Filter(
                             type = FilterType.ASSIGNABLE_TYPE,
-                            classes = HeatmapGenerator.class))
+                            classes = {HeatmapGenerator.class, HeatmapReader.class}))
     static class ScanServicePackage {}
 
     private final ApplicationContextRunner contextRunner =

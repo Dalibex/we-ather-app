@@ -53,6 +53,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   última observación de Open-Meteo de cada punto, ajustada con los reportes validados (todavía no
   hay ninguno). Las calles de Overpass se recargan cada semana, y al arrancar si faltan o tienen más
   de siete días. Las frecuencias se configuran en `weather.heat.schedule` (T-17.3, T-17.4).
+- Servidor: el motor de rutas lee el mapa de calor interno con `HeatmapReader`, que devuelve el
+  último mapa generado (zonas, cuándo se generó y de cuándo es su dato meteorológico más antiguo) y
+  el calor de cualquier punto de Málaga, que es el de su zona más cercana. Si todavía no hay mapa,
+  no devuelve ninguno (T-17.5).
 - Servidor: el tiempo de Open-Meteo se refresca solo cada hora en punto (`weather.heat.refresco-cron`
   en `application.yaml`). Si Open-Meteo falla, `GET /api/heatmap` sigue devolviendo la última
   observación válida de cada punto (T-20.1).
