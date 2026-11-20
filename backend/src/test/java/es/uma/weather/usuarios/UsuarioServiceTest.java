@@ -10,11 +10,17 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class UsuarioServiceTest {
 
@@ -142,5 +148,42 @@ class UsuarioServiceTest {
         when(passwordEncoder.encode(setentaYDosBytes)).thenReturn("hash");
 
         assertThat(servicio.registerUser(CORREO, setentaYDosBytes, true)).isNotNull();
+    }
+
+    // El nombre del usuario autenticado es su id, nunca su correo: es lo que va en el token.
+    @Test
+    void alCargarPorCorreoElNombreDelUsuarioEsSuId() {
+        Usuario usuario = usuarioGuardado();
+        when(repositorio.findByCorreo(CORREO)).thenReturn(Optional.of(usuario));
+
+        UserDetails cargado = servicio.loadUserByUsername("Usuario@Example.com");
+
+        assertThat(cargado.getUsername()).isEqualTo(usuario.getId().toString());
+        assertThat(cargado.getPassword()).isEqualTo("hash");
+    }
+
+    @Test
+    void cargaPorIdUnUsuarioExistente() {
+        Usuario usuario = usuarioGuardado();
+        when(repositorio.findById(usuario.getId())).thenReturn(Optional.of(usuario));
+
+        UserDetails cargado = servicio.cargarPorId(usuario.getId());
+
+        assertThat(cargado.getUsername()).isEqualTo(usuario.getId().toString());
+    }
+
+    @Test
+    void cargarPorIdUnUsuarioInexistenteLanzaUsernameNotFound() {
+        UUID id = UUID.randomUUID();
+        when(repositorio.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> servicio.cargarPorId(id))
+                .isInstanceOf(UsernameNotFoundException.class);
+    }
+
+    private static Usuario usuarioGuardado() {
+        Usuario usuario = Usuario.crear(CORREO, "hash", Instant.now());
+        ReflectionTestUtils.setField(usuario, "id", UUID.randomUUID());
+        return usuario;
     }
 }
