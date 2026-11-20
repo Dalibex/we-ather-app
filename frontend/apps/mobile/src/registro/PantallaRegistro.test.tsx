@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { AccessibilityInfo, Linking } from 'react-native';
 
 import { PantallaRegistro } from './PantallaRegistro';
 
@@ -66,6 +66,27 @@ describe('PantallaRegistro', () => {
       contrasena: 'contraseña-de-prueba',
       confirmaEdadYPolitica: true,
     });
+  });
+
+  it('muestra el error que recibe del servidor y lo anuncia', async () => {
+    const anunciar = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+
+    await renderPantalla({ error: 'El correo ya está registrado' });
+
+    expect(screen.getByRole('alert')).toHaveTextContent('El correo ya está registrado');
+    expect(anunciar).toHaveBeenCalledWith('El correo ya está registrado');
+    anunciar.mockRestore();
+  });
+
+  it('mientras se envía no deja volver a pulsar «Crear cuenta»', async () => {
+    const onEnviar = jest.fn();
+    await renderPantalla({ onEnviar, enviando: true });
+
+    const boton = screen.getByRole('button', { name: 'Crear cuenta' });
+    await fireEvent.press(boton);
+
+    expect(boton).toBeDisabled();
+    expect(onEnviar).not.toHaveBeenCalled();
   });
 
   it('llama a onVolver al pulsar volver', async () => {
