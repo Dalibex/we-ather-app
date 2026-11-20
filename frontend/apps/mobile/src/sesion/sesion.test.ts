@@ -8,7 +8,7 @@ import {
   mensajeParaElUsuario,
   registrar,
 } from './sesion';
-import { tokenDePrueba } from './tokenDePrueba';
+import { tokenDePrueba } from '../../pruebas/tokenDePrueba';
 
 // El sustituto de las pruebas (__mocks__/expo-secure-store.ts) guarda en memoria.
 const { __vaciar } = SecureStore as unknown as { __vaciar: () => void };

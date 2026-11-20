@@ -8,7 +8,7 @@ jest.mock('expo-file-system/legacy', () => ({
 
 import App from './App';
 import { guardarToken, leerTokenGuardado } from './src/sesion/sesion';
-import { tokenDePrueba } from './src/sesion/tokenDePrueba';
+import { tokenDePrueba } from './pruebas/tokenDePrueba';
 
 // El sustituto de las pruebas (__mocks__/expo-secure-store.ts) guarda en memoria.
 const { __vaciar } = SecureStore as unknown as { __vaciar: () => void };

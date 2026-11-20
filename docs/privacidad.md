@@ -9,9 +9,10 @@ reporte ni qué ruta ha pedido.
 Para buscar rutas no necesitas cuenta. La cuenta solo hace falta para enviar reportes sobre el calor.
 
 **WEather está en desarrollo.** Hoy la app solo envía al servidor tu correo y tu contraseña cuando
-creas la cuenta o inicias sesión, y todavía no permite enviar reportes. Las medidas de los apartados 3, 7 y 9 (la relación cifrada entre reportes y
-cuentas, los registros de acceso, las copias de seguridad y el bloqueo de las cuentas dadas de baja)
-se están construyendo y estarán funcionando antes de que la app guarde esos datos.
+creas la cuenta o inicias sesión, y todavía no permite enviar reportes. Las medidas de los apartados
+3, 7 y 9 (la relación cifrada entre reportes y cuentas, los registros de acceso, las copias de
+seguridad y el bloqueo de las cuentas dadas de baja) se están construyendo y estarán funcionando
+antes de que la app guarde esos datos.
 
 ## 1. Quién trata tus datos
 
