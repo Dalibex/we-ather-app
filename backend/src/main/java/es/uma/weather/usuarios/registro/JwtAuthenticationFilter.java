@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,19 +46,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             // Si el token no sirve, se sigue sin autenticar: las reglas de SecurityConfig
             // responden 401 en las rutas protegidas y no estorban en las públicas.
-            Optional<String> correo = jwtService.extractCorreo(token);
+            Optional<UUID> idUsuario = jwtService.extractIdUsuario(token);
 
-            if (correo.isPresent()) {
-                autenticar(correo.get(), request);
+            if (idUsuario.isPresent()) {
+                autenticar(idUsuario.get(), request);
             }
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private void autenticar(String correo, HttpServletRequest request) {
+    private void autenticar(UUID idUsuario, HttpServletRequest request) {
         try {
-            UserDetails usuario = usuarioService.loadUserByUsername(correo);
+            UserDetails usuario = usuarioService.cargarPorId(idUsuario);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(

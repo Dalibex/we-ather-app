@@ -22,4 +22,14 @@ describe('PantallaMapa', () => {
 
     expect(onIniciarSesion).toHaveBeenCalledTimes(1);
   });
+
+  it('con la sesión iniciada muestra «Cerrar sesión» en lugar de «Iniciar sesión»', async () => {
+    const onCerrarSesion = jest.fn();
+    await render(<PantallaMapa onIniciarSesion={jest.fn()} onCerrarSesion={onCerrarSesion} />);
+
+    expect(screen.queryByRole('button', { name: 'Iniciar sesión' })).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Cerrar sesión' }));
+
+    expect(onCerrarSesion).toHaveBeenCalledTimes(1);
+  });
 });

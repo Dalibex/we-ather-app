@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.junit.jupiter.api.Test;
 
@@ -18,27 +19,51 @@ class JwtServiceTest {
     private final JwtService servicio = new JwtService(SECRETO, 60_000);
 
     @Test
-    void elTokenGeneradoDevuelveElCorreo() {
-        String token = servicio.generateToken("usuario@example.com");
+    void elTokenGeneradoDevuelveElIdDelUsuario() {
+        UUID id = UUID.randomUUID();
 
-        assertThat(servicio.extractCorreo(token)).contains("usuario@example.com");
+        String token = servicio.generateToken(id);
+
+        assertThat(servicio.extractIdUsuario(token)).contains(id);
+    }
+
+    // Cualquiera que tenga el token puede leer su contenido: no debe llevar el correo.
+    @Test
+    void elSujetoDelTokenEsElIdDelUsuario() {
+        UUID id = UUID.randomUUID();
+
+        String token = servicio.generateToken(id);
+
+        assertThat(sujeto(token)).isEqualTo(id.toString());
     }
 
     @Test
-    void unTokenManipuladoNoDevuelveCorreo() {
-        assertThat(servicio.extractCorreo("token.invalido.manipulado")).isEmpty();
+    void unTokenManipuladoNoDevuelveId() {
+        assertThat(servicio.extractIdUsuario("token.invalido.manipulado")).isEmpty();
+    }
+
+    // Los tokens emitidos antes de T-02.3 llevaban el correo como sujeto.
+    @Test
+    void unTokenFirmadoCuyoSujetoNoEsUnIdNoDevuelveId() {
+        String token =
+                Jwts.builder()
+                        .subject("usuario@example.com")
+                        .expiration(new Date(System.currentTimeMillis() + 60_000))
+                        .signWith(clave())
+                        .compact();
+
+        assertThat(servicio.extractIdUsuario(token)).isEmpty();
     }
 
     @Test
-    void unTokenFirmadoSinSujetoNoDevuelveCorreo() {
-        SecretKey clave = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRETO));
+    void unTokenFirmadoSinSujetoNoDevuelveId() {
         String token =
                 Jwts.builder()
                         .expiration(new Date(System.currentTimeMillis() + 60_000))
-                        .signWith(clave)
+                        .signWith(clave())
                         .compact();
 
-        assertThat(servicio.extractCorreo(token)).isEmpty();
+        assertThat(servicio.extractIdUsuario(token)).isEmpty();
     }
 
     @Test
@@ -51,6 +76,19 @@ class JwtServiceTest {
     void unSecretoDeMenosDe256BitsHaceFallarLaConstruccion() {
         assertThatThrownBy(() -> new JwtService(base64(new byte[16]), 60_000))
                 .isInstanceOf(JwtException.class);
+    }
+
+    private static SecretKey clave() {
+        return Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRETO));
+    }
+
+    private static String sujeto(String token) {
+        return Jwts.parser()
+                .verifyWith(clave())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
     }
 
     private static String base64(byte[] bytes) {

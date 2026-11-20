@@ -65,7 +65,10 @@ class SecurityConfig {
                                         .requestMatchers(
                                                 "/actuator/health/**", "/api/v1/teselas/**")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.POST, "/api/v1/usuarios")
+                                        .requestMatchers(
+                                                HttpMethod.POST,
+                                                "/api/v1/usuarios",
+                                                "/api/v1/sesiones")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())

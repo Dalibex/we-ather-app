@@ -33,8 +33,9 @@ cp .env.example .env   # y cambia la contraseña; .env nunca se versiona
 Al arrancar, Spring Boot levanta el contenedor de PostgreSQL definido en `docker-compose.yaml` con
 los valores de `.env` y aplica las migraciones de `src/main/resources/db/migration`. El estado del
 servidor está en <http://localhost:8080/actuator/health>. Son públicos el health check, las teselas
-del mapa (`/api/v1/teselas/{z}/{x}/{y}.png`) y el registro (`POST /api/v1/usuarios`); el resto de
-rutas pide un token JWT en la cabecera `Authorization: Bearer <token>`.
+del mapa (`/api/v1/teselas/{z}/{x}/{y}.png`), el registro (`POST /api/v1/usuarios`) y el inicio de
+sesión (`POST /api/v1/sesiones`, que devuelve el token); el resto de rutas pide un token JWT en la
+cabecera `Authorization: Bearer <token>`.
 
 El servidor firma esos tokens con la clave de la variable de entorno `JWT_SECRET` y no arranca sin
 ella. Tiene que ser una cadena Base64 de al menos 32 bytes, por ejemplo la que da
@@ -52,9 +53,8 @@ Si la base de datos no tiene calles, o las que tiene son de hace más de siete d
 descargan todas las de Málaga de Overpass, que es un servicio compartido y gratuito. En local basta
 con hacerlo una vez: para no repetir la descarga, pon `WEATHER_HEAT_SCHEDULE_URBAN=-` en la
 configuración de ejecución (como `JWT_SECRET`, no sirve en `.env`). Así se desactivan la carga al
-arrancar y la semanal. `POST /api/ingestion/urban` las carga a mano, pero pide un token JWT, y hasta
-que llegue el inicio de sesión (T-02.3) no hay forma de obtenerlo: mientras, deja la variable sin
-poner hasta que las calles se hayan cargado una vez.
+arrancar y la semanal. `POST /api/ingestion/urban` las carga a mano con el token de cualquier cuenta:
+regístrate con `POST /api/v1/usuarios` e inicia sesión con `POST /api/v1/sesiones`.
 
 Comprobaciones:
 

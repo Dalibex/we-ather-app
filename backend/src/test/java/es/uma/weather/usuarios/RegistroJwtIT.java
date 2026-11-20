@@ -6,12 +6,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import es.uma.weather.TestcontainersConfiguration;
 import es.uma.weather.usuarios.registro.JwtService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.util.Date;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,12 +49,16 @@ class RegistroJwtIT {
     @Test
     void registraUnUsuarioYAccedeConSuJwt() throws Exception {
 
-        registrar(CORREO, CONTRASENA)
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNotEmpty())
-                .andExpect(jsonPath("$.correo").value(CORREO));
+        String respuesta =
+                registrar(CORREO, CONTRASENA)
+                        .andExpect(status().isCreated())
+                        .andExpect(jsonPath("$.id").isNotEmpty())
+                        .andExpect(jsonPath("$.correo").value(CORREO))
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString();
 
-        String token = jwtService.generateToken(CORREO);
+        String token = jwtService.generateToken(UUID.fromString(JsonPath.read(respuesta, "$.id")));
 
         mockMvc.perform(get("/api/test/protegido").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -77,7 +83,7 @@ class RegistroJwtIT {
     @Test
     void noPermiteAccederConUnJwtValidoDeUnUsuarioInexistente() throws Exception {
 
-        String token = jwtService.generateToken("no-existe@example.com");
+        String token = jwtService.generateToken(UUID.randomUUID());
 
         mockMvc.perform(get("/api/test/protegido").header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
@@ -89,7 +95,7 @@ class RegistroJwtIT {
         SecretKey otraClave = Keys.hmacShaKeyFor(new byte[32]);
         String token =
                 Jwts.builder()
-                        .subject(CORREO)
+                        .subject(registrarYObtenerId())
                         .expiration(new Date(System.currentTimeMillis() + 60_000))
                         .signWith(otraClave)
                         .compact();
@@ -104,7 +110,7 @@ class RegistroJwtIT {
         Date ayer = new Date(System.currentTimeMillis() - 86_400_000);
         String token =
                 Jwts.builder()
-                        .subject(CORREO)
+                        .subject(registrarYObtenerId())
                         .issuedAt(new Date(ayer.getTime() - 60_000))
                         .expiration(ayer)
                         .signWith(claveDePruebas())
@@ -240,6 +246,16 @@ class RegistroJwtIT {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("CORREO_YA_REGISTRADO"))
                 .andExpect(jsonPath("$.mensaje").value("El correo ya está registrado"));
+    }
+
+    private String registrarYObtenerId() throws Exception {
+        String respuesta =
+                registrar(CORREO, CONTRASENA)
+                        .andExpect(status().isCreated())
+                        .andReturn()
+                        .getResponse()
+                        .getContentAsString();
+        return JsonPath.read(respuesta, "$.id");
     }
 
     private SecretKey claveDePruebas() {
