@@ -86,6 +86,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   campo. Si el correo ya está registrado lo dirá el servidor (HU-01, T-01.3).
 - App móvil: pantalla de inicio de sesión con correo y contraseña. Todavía no autentica ni envía las
   credenciales al servidor (HU-02, T-02.1).
+- App móvil: el registro envía la cuenta al servidor (`POST /api/v1/usuarios`). Si se crea, lleva al
+  inicio de sesión con el correo escrito y el aviso «Cuenta creada. Ya puedes iniciar sesión.»; si el
+  correo ya tiene cuenta, lo dice en el propio registro (HU-02, T-02.3).
+- App móvil: el inicio de sesión se conecta con el servidor. Con credenciales correctas guarda el
+  token en el almacén cifrado del móvil (`expo-secure-store`) y lleva al mapa; si no, muestra «Correo o
+  contraseña incorrectos» o un aviso si no hay conexión. Al abrir la app, una sesión guardada y sin
+  caducar lleva directamente al mapa. En el mapa, «Iniciar sesión» pasa a ser «Cerrar sesión», que
+  borra el token (HU-02, T-02.3).
 - App móvil: el registro y el inicio de sesión se enlazan entre sí y conservan el correo escrito al
   pasar de una a otra; el botón o gesto «atrás» de Android vuelve a la pantalla anterior; el
   formulario se desplaza si no cabe y se aparta del teclado.

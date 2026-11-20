@@ -8,8 +8,8 @@ reporte ni qué ruta ha pedido.
 
 Para buscar rutas no necesitas cuenta. La cuenta solo hace falta para enviar reportes sobre el calor.
 
-**WEather está en desarrollo.** Hoy la app todavía no envía al servidor los datos de la cuenta ni
-permite enviar reportes. Las medidas de los apartados 3, 7 y 9 (la relación cifrada entre reportes y
+**WEather está en desarrollo.** Hoy la app solo envía al servidor tu correo y tu contraseña cuando
+creas la cuenta o inicias sesión, y todavía no permite enviar reportes. Las medidas de los apartados 3, 7 y 9 (la relación cifrada entre reportes y
 cuentas, los registros de acceso, las copias de seguridad y el bloqueo de las cuentas dadas de baja)
 se están construyendo y estarán funcionando antes de que la app guarde esos datos.
 
@@ -28,6 +28,7 @@ WEather es un proyecto académico del grupo NeoForge, desarrollado en la Univers
 | --- | --- | --- |
 | Correo electrónico | Identificar tu cuenta y que puedas iniciar sesión | Al registrarte |
 | Contraseña | Que puedas iniciar sesión. Solo guardamos una huella cifrada (hash), nunca la contraseña | Al registrarte |
+| Token de sesión | Que no tengas que escribir la contraseña cada vez que abres la app. Lo guarda tu móvil, cifrado; no lleva tu correo, caduca a las 24 horas y se borra al cerrar sesión | Al iniciar sesión |
 | Fecha en que confirmaste tener 14 años o más y haber leído esta política | Poder demostrar que se te informó antes de crear la cuenta | Al registrarte |
 | Reportes: valoración de 1 a 5, comentario de texto o de voz, punto del mapa y hora | Mejorar la estimación del calor de cada zona | Cuando envías un reporte |
 | Origen y destino que escribes | Calcular las rutas. No se asocian a tu cuenta ni se guardan con ella | En cada búsqueda |
