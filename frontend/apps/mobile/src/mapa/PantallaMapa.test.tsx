@@ -22,4 +22,12 @@ describe('PantallaMapa', () => {
 
     expect(onIniciarSesion).toHaveBeenCalledTimes(1);
   });
+
+  it('muestra el buscador de origen y destino sobre el mapa', async () => {
+    await render(<PantallaMapa onIniciarSesion={jest.fn()} />);
+
+    expect(screen.getByLabelText('Origen')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Destino')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Buscar ruta' })).toBeDisabled();
+  });
 });
