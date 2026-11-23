@@ -1,0 +1,54 @@
+name: Propuesta de funcionalidad
+description: Una funcionalidad nueva o un cambio en una que ya existe
+title: "[Propuesta]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        El Product Owner revisa cada propuesta. Si encaja en el alcance del proyecto, la convierte en
+        una historia de usuario del backlog; si no, cierra la issue y explica por qué.
+        Quedan fuera del alcance, por diseño, las propuestas que salen de Málaga, usan la ubicación en
+        tiempo real o pintan las rutas o el mapa de calor sobre el mapa.
+
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué problema resuelve
+      description: Qué te pasa hoy al usar WEather, no la solución.
+    validations:
+      required: true
+
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Qué propones
+    validations:
+      required: true
+
+  - type: dropdown
+    id: quien
+    attributes:
+      label: Quién la usaría
+      multiple: true
+      options:
+        - Peatón sin cuenta
+        - Usuario registrado
+        - Administrador
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas que has pensado
+
+  - type: checkboxes
+    id: comprobaciones
+    attributes:
+      label: Comprobaciones
+      options:
+        - label: He buscado en las issues y no hay una propuesta igual.
+          required: true
+        - label: La propuesta se limita a Málaga, no usa la ubicación en tiempo real y no pinta rutas ni el mapa de calor sobre el mapa.
+          required: true

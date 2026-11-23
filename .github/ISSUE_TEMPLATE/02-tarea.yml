@@ -1,0 +1,82 @@
+name: Tarea
+description: Solo para el equipo. Una tarea de una HU, o de configuración o mantenimiento (máximo 6 h)
+title: "[T-XX.n]: "
+labels: ["tarea"]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué hay que hacer
+    validations:
+      required: true
+
+  - type: input
+    id: hu
+    attributes:
+      label: HU
+      description: Escribe «ninguna» si es una tarea de configuración o mantenimiento.
+      placeholder: "#12"
+    validations:
+      required: true
+
+  - type: input
+    id: horas
+    attributes:
+      label: Horas (desarrollo / pruebas / revisión)
+      description: Seis horas como máximo en total; si pasa de 6 h, se divide.
+      placeholder: 2 / 1,5 / 0,5
+    validations:
+      required: true
+
+  - type: dropdown
+    id: incertidumbre
+    attributes:
+      label: Incertidumbre
+      options:
+        - Baja
+        - Media
+        - Alta
+    validations:
+      required: true
+
+  - type: input
+    id: responsable
+    attributes:
+      label: Responsable
+      placeholder: "@usuario"
+    validations:
+      required: true
+
+  - type: input
+    id: revisor
+    attributes:
+      label: Revisor
+      placeholder: "@usuario"
+    validations:
+      required: true
+
+  - type: input
+    id: depende
+    attributes:
+      label: Depende de
+      placeholder: "Ninguna, o #N"
+
+  - type: textarea
+    id: pruebas
+    attributes:
+      label: Pruebas que la guían
+      description: Se desarrolla con TDD; estas pruebas se escriben primero y fallan antes de escribir el código.
+      value: |
+        -
+    validations:
+      required: true
+
+  - type: textarea
+    id: terminada
+    attributes:
+      label: Terminada cuando
+      value: |
+        - [ ] Las pruebas se escribieron antes que el código y están en verde.
+        - [ ]
+    validations:
+      required: true

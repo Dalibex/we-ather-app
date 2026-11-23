@@ -1,0 +1,47 @@
+name: Historia de usuario
+description: Solo para el equipo. Una HU del Product Backlog, con sus criterios de aceptación
+title: "[HU-XX]: "
+labels: ["historia"]
+body:
+  - type: textarea
+    id: historia
+    attributes:
+      label: Historia
+      value: Como <usuario>, quiero <acción> para <beneficio>.
+    validations:
+      required: true
+
+  - type: input
+    id: objetivos
+    attributes:
+      label: Objetivos que cubre
+      description: Los objetivos del ConOps.
+      placeholder: OBJ-01, OBJ-03
+    validations:
+      required: true
+
+  - type: dropdown
+    id: alcance
+    attributes:
+      label: Alcance (MoSCoW)
+      options:
+        - Must
+        - Should
+        - Could
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de aceptación
+      description: Cada criterio tendrá una prueba de aceptación asociada.
+      value: |
+        - [ ]
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        Las tareas se añaden después como sub-issues (`[T-XX.n]`).
