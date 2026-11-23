@@ -101,3 +101,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   reportes, servicios externos (OpenStreetMap no recibe la IP del usuario, porque el servidor sirve
   las teselas), plazos de conservación y bloqueo, derechos y edad mínima.
 - Atribuciones de los recursos de terceros en `docs/atribuciones.md`.
+- Preparación para contribuciones de fuera del equipo: la guía de contribución separa lo que vale
+  para cualquier persona (informar de un error, proponer una funcionalidad, enviar un cambio desde
+  un fork) del flujo del equipo; todas las plantillas de issue pasan a formulario y se añade la de
+  propuestas; la plantilla de pull request incluye las comprobaciones de los clientes; y el README
+  recoge las limitaciones del proyecto y por dónde empezar a contribuir.

@@ -1,11 +1,126 @@
 # Contribuir a WEather
 
-Todas las personas que participan aceptan el [código de conducta](CODE_OF_CONDUCT.md). Para
-vulnerabilidades, sigue la [política de seguridad](SECURITY.md), nunca una issue pública.
+WEather lo desarrolla un equipo universitario, el grupo NeoForge. Esta guía explica cómo participar,
+en tres partes:
 
-Todo el proyecto se escribe en español: documentación, issues, pull requests y commits.
+| Parte | Para quién | Apartados |
+| --- | --- | --- |
+| [🌍 Para todo el mundo](#-para-todo-el-mundo) | Cualquier persona | [Informar de un error o proponer una funcionalidad](#informar-de-un-error-o-proponer-una-funcionalidad) · [Informar de una vulnerabilidad](#informar-de-una-vulnerabilidad) · [Proponer un cambio](#proponer-un-cambio) |
+| [📏 Convenciones de todo cambio](#-convenciones-de-todo-cambio) | Todo cambio, lo haga quien lo haga | [Ramas](#ramas) · [Commits](#commits) · [Pruebas](#pruebas) · [Pull requests](#pull-requests) |
+| [👥 Flujo del equipo](#-flujo-del-equipo) | Las personas del equipo | [Documentación de referencia](#documentación-de-referencia) · [Equipo y roles](#equipo-y-roles) · [Sprints y eventos](#sprints-y-eventos) · [Comunicación y acuerdos](#comunicación-y-acuerdos) · [Historias de usuario y tareas](#historias-de-usuario-y-tareas) · [Flujo](#flujo) · [Definition of Done](#definition-of-done) · [Labels](#labels) |
 
-## Documentación de referencia
+Todas las personas que participan aceptan el [código de conducta](CODE_OF_CONDUCT.md).
+
+Todo el proyecto se escribe en español: documentación, issues, pull requests y commits. Para
+arrancar el proyecto en tu equipo, sigue la [guía de desarrollo](docs/development.md); esta guía no
+la repite.
+
+## 🌍 Para todo el mundo
+
+### Informar de un error o proponer una funcionalidad
+
+Cualquier persona con cuenta de GitHub puede abrir una issue. Busca antes en las issues abiertas y,
+si ya existe una igual, comenta en ella en lugar de abrir otra. Después elige la plantilla:
+
+| Plantilla | Para qué |
+| --- | --- |
+| Bug | Algo no funciona como debería |
+| Propuesta de funcionalidad | Una funcionalidad nueva o un cambio en una que ya existe |
+
+Las plantillas *Historia de usuario* y *Tarea* son del equipo, y las issues en blanco están
+desactivadas: cada issue empieza en una plantilla, que le pone su label.
+
+Los bugs se priorizan y se planifican en el sprint que toque. Las propuestas las revisa el
+Product Owner: si encajan en el alcance del proyecto, las convierte en una historia de usuario del
+backlog; si no, cierra la issue y explica por qué. Quedan fuera del alcance, por diseño, las que
+salen de Málaga, usan la ubicación en tiempo real o pintan las rutas o el mapa de calor sobre el mapa
+(ver [Limitaciones](README.md#-limitaciones)).
+
+No incluyas datos personales reales, contraseñas ni tokens en una issue.
+
+### Informar de una vulnerabilidad
+
+> [!CAUTION]
+> Nunca abras una issue pública para una vulnerabilidad. Sigue la
+> [política de seguridad](SECURITY.md), que usa el aviso privado de vulnerabilidades de GitHub.
+
+### Proponer un cambio
+
+Si no eres del equipo y quieres resolver una issue, comenta en ella que quieres hacerla y espera a
+que alguien del equipo te la asigne, para que no se haga dos veces. Si en una semana no hay avances
+ni comentarios, la issue vuelve a quedar libre. Para empezar, las issues marcadas como
+[good first issue](https://github.com/Dalibex/we-ather-app/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+son pequeñas, no bloquean el sprint y dicen qué archivos tocar.
+
+Trabaja en un fork y abre la pull request contra `main` siguiendo las
+[convenciones de todo cambio](#-convenciones-de-todo-cambio), igual que el equipo. La CI se ejecuta
+en tu PR como en cualquier otra (en tu primera contribución, después de que alguien del equipo
+apruebe la ejecución), y una persona del equipo la revisa y la fusiona.
+
+Solo el equipo asigna issues y decide qué entra en cada sprint.
+
+## 📏 Convenciones de todo cambio
+
+Se aplican a todos los cambios, los haga una persona del equipo o alguien desde un fork.
+
+### Ramas
+
+`tipo/<tarea>-descripcion-corta`, en minúsculas y con guiones:
+
+| Tipo | Uso |
+| --- | --- |
+| `feature/` | Funcionalidad nueva |
+| `fix/` | Corrección de un error |
+| `docs/` | Solo documentación |
+| `chore/` | Configuración, dependencias, mantenimiento |
+
+Ejemplos: `feature/t-17.1-ingesta-calor`, `fix/42-coordenadas-fuera-de-rango`. Si tu issue no es
+una tarea, usa su número.
+
+### Commits
+
+[Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/): `tipo(ámbito opcional):
+descripción`, en imperativo y corta, con la tarea al final.
+
+```text
+feat(heatmap): ingerir los datos de Open-Meteo (T-17.1)
+fix(apis): devolver el último dato válido si la API no responde (T-20.1)
+docs: añadir guía de desarrollo
+```
+
+Tipos habituales: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`.
+
+### Pruebas
+
+Todo comportamiento nuevo se desarrolla con **TDD**: prueba que falla, código mínimo para que pase,
+refactorización.
+
+- **Unitarias:** se ejecutan en local antes de subir cambios, y la CI las repite.
+- **Integración:** comprueban la base de datos y las APIs externas usando mocks, para no gastar sus
+  límites de peticiones.
+- **Aceptación:** se ejecutan cuando todas las tareas de la HU están integradas; cada criterio de
+  aceptación tiene su prueba.
+- Cada tarea incluye sus pruebas: ninguna HU llega a revisión sin ellas.
+- Objetivo del equipo: el 100 % de las PRs con pruebas y más del 70 % de cobertura en el backend.
+
+### Pull requests
+
+- Una PR por issue, pequeña y solo con cambios de esa issue. Rellena la
+  [plantilla](.github/pull_request_template.md).
+- El título sigue el formato de los commits, con la tarea al final. El job `pr-title` rechaza
+  cualquier otro.
+- Escribe `Closes #N` en la descripción para que la issue se cierre al fusionar la PR.
+- Antes de pedir revisión, ejecuta las comprobaciones de las partes que has cambiado
+  ([desarrollo local](docs/development.md)) y actualiza la documentación afectada.
+- Solo se fusiona con la CI en verde, la aprobación de una persona distinta del autor, pruebas para
+  la lógica nueva o modificada y sin conflictos con `main`.
+- El revisor rechaza la PR si no tiene pruebas o si el historial de commits muestra que se
+  escribieron al final, después del código.
+- Nunca incluyas secretos, archivos `.env` ni datos personales reales.
+
+## 👥 Flujo del equipo
+
+### Documentación de referencia
 
 | Documento | Qué contiene |
 | --- | --- |
@@ -16,7 +131,7 @@ Todo el proyecto se escribe en español: documentación, issues, pull requests y
 
 Si algo de esta guía choca con el ConOps en el alcance, manda el ConOps y se avisa al Product Owner.
 
-## Equipo y roles
+### Equipo y roles
 
 | Rol | Quién | Responsabilidades |
 | --- | --- | --- |
@@ -31,7 +146,7 @@ Si algo de esta guía choca con el ConOps en el alcance, manda el ConOps y se av
 - Las dudas de requisitos van al PO. Lo que no pueda resolver se lleva a la siguiente sesión con el
   profesorado y, mientras, la tarea queda en *Necesita ayuda*.
 
-## Sprints y eventos
+### Sprints y eventos
 
 Los sprints duran **2 semanas** y cada uno es un milestone de GitHub (`Sprint 1`, `Sprint 2`...).
 Cada persona dedica como máximo **12 horas netas** por sprint.
@@ -49,7 +164,7 @@ hará antes de la siguiente reunión y si hay bloqueos. Los problemas técnicos 
 anotan y los implicados los tratan justo después. Las grabaciones se guardan fuera del repositorio,
 como explica [docs/dailys](docs/dailys/README.md).
 
-## Comunicación y acuerdos
+### Comunicación y acuerdos
 
 - **Canales:** WhatsApp para la coordinación diaria, Discord para los Scrum Meetings en remoto y la
   pull request para las discusiones técnicas. Se responde en menos de 24 h.
@@ -65,7 +180,7 @@ como explica [docs/dailys](docs/dailys/README.md).
   simple.
 - **Ritmo:** nadie supera sus horas y no se acumula trabajo en los últimos días del sprint.
 
-## Historias de usuario y tareas
+### Historias de usuario y tareas
 
 Las issues siguen la misma estructura que el tablero de ClickUp:
 
@@ -77,8 +192,10 @@ Las issues siguen la misma estructura que el tablero de ClickUp:
   revisor y de qué depende. Se añade como sub-issue de su HU y no repite sus criterios. Una tarea
   de configuración o mantenimiento (el esqueleto, la CI, una guía) puede no tener HU.
 - **Bug** (`[Bug]: título`): un error, con los pasos para reproducirlo.
+- **Propuesta** (`[Propuesta]: título`): una funcionalidad que pide alguien de fuera del equipo. Si
+  el PO la acepta, se convierte en una HU.
 
-### ClickUp y GitHub
+#### ClickUp y GitHub
 
 Cada tarea existe en los dos sitios con el mismo identificador (`T-17.1`):
 
@@ -92,7 +209,7 @@ Estados en ClickUp: Pendiente → Sprint Backlog → En curso → En revisión �
 *Necesita ayuda* (bloqueo) y *Gestionando riesgos* (riesgo que obliga a replanificar la tarea).
 GitHub no tiene estos estados: una issue está abierta hasta que se fusiona su PR.
 
-## Flujo
+### Flujo
 
 1. Coge una tarea del Sprint Backlog asignada a ti.
 2. Crea una **rama** desde el último `main`.
@@ -114,52 +231,7 @@ fusiona en la rama de la tarea base, y la PR de esa tarea lleva las dos a `main`
 y un `Closes` por cada issue. Si la tarea base se fusiona antes, rebasa tu rama sobre `main` con
 `git rebase --onto origin/main <último commit de la tarea base>`.
 
-## Ramas
-
-`tipo/<tarea>-descripcion-corta`, en minúsculas y con guiones:
-
-| Tipo | Uso |
-| --- | --- |
-| `feature/` | Funcionalidad nueva |
-| `fix/` | Corrección de un error |
-| `docs/` | Solo documentación |
-| `chore/` | Configuración, dependencias, mantenimiento |
-
-Ejemplos: `feature/t-17.1-ingesta-calor`, `fix/42-coordenadas-fuera-de-rango`.
-
-## Commits
-
-[Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/): `tipo(ámbito opcional):
-descripción`, en imperativo y corta, con la tarea al final.
-
-```text
-feat(heatmap): ingerir los datos de Open-Meteo (T-17.1)
-fix(apis): devolver el último dato válido si la API no responde (T-20.1)
-docs: añadir guía de desarrollo
-```
-
-Tipos habituales: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`.
-
-## Pruebas
-
-- **Unitarias:** cada developer las ejecuta en local antes de subir cambios, y la CI las repite.
-- **Integración:** comprueban la base de datos y las APIs externas usando mocks, para no gastar sus
-  límites de peticiones.
-- **Aceptación:** se ejecutan cuando todas las tareas de la HU están integradas; cada criterio de
-  aceptación tiene su prueba.
-- Cada tarea incluye sus pruebas: ninguna HU llega a revisión sin ellas.
-- Objetivo del equipo: el 100 % de las PRs con pruebas y más del 70 % de cobertura en el backend.
-
-## Pull requests
-
-- Una PR por tarea, pequeña y solo con cambios de esa tarea.
-- El título sigue el formato de los commits, con la tarea al final.
-- Solo se fusiona con la CI en verde, la aprobación de una persona distinta del autor, pruebas para
-  la lógica nueva o modificada y sin conflictos con `main`.
-- El revisor rechaza la PR si no tiene pruebas o si el historial de commits muestra que se
-  escribieron al final, después del código.
-
-## Definition of Done
+### Definition of Done
 
 Una tarea está terminada cuando:
 
@@ -170,7 +242,9 @@ Una tarea está terminada cuando:
 - Está integrada en `main` sin romper funcionalidades anteriores.
 - La documentación afectada está actualizada.
 
-## Labels
+### Labels
 
-- Tipo: `historia`, `tarea`, `bug`.
+- Tipo: `historia`, `tarea`, `bug`, `enhancement` (propuesta).
 - Prioridad: `prioridad: urgente`, `prioridad: alta`, `prioridad: media`, `prioridad: baja`.
+- Para contribuir desde fuera: `good first issue` (pequeña, fuera del camino crítico del sprint y
+  con los archivos que tocar) y `help wanted` (el equipo acepta ayuda en ella).
