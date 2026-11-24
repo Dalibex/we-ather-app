@@ -6,10 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        El Product Owner revisa cada propuesta. Si encaja en el alcance del proyecto, la convierte en
-        una historia de usuario del backlog; si no, cierra la issue y explica por qué.
-        Quedan fuera del alcance, por diseño, las propuestas que salen de Málaga, usan la ubicación en
-        tiempo real o pintan las rutas o el mapa de calor sobre el mapa.
+        El Product Owner revisa cada propuesta contra el MoSCoW del ConOps, que fija el alcance de
+        la versión 1.0. Si el ConOps la recoge como *Must*, *Should* o *Could*, la convierte en una
+        historia de usuario del backlog. Si la marca como *Won't* o no la recoge, cierra la issue
+        indicando que queda fuera de la 1.0 y que se podrá retomar después: es el caso de las que
+        salen de Málaga, usan la ubicación en tiempo real o pintan las rutas o el mapa de calor
+        sobre el mapa.
 
   - type: textarea
     id: problema
@@ -50,5 +52,5 @@ body:
       options:
         - label: He buscado en las issues y no hay una propuesta igual.
           required: true
-        - label: La propuesta se limita a Málaga, no usa la ubicación en tiempo real y no pinta rutas ni el mapa de calor sobre el mapa.
+        - label: He leído qué queda fuera de la versión 1.0 (apartado Limitaciones del README).
           required: true

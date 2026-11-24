@@ -30,11 +30,15 @@ si ya existe una igual, comenta en ella en lugar de abrir otra. Después elige l
 Las plantillas *Historia de usuario* y *Tarea* son del equipo, y las issues en blanco están
 desactivadas: cada issue empieza en una plantilla, que le pone su label.
 
-Los bugs se priorizan y se planifican en el sprint que toque. Las propuestas las revisa el
-Product Owner: si encajan en el alcance del proyecto, las convierte en una historia de usuario del
-backlog; si no, cierra la issue y explica por qué. Quedan fuera del alcance, por diseño, las que
-salen de Málaga, usan la ubicación en tiempo real o pintan las rutas o el mapa de calor sobre el mapa
-(ver [Limitaciones](README.md#-limitaciones)).
+Los bugs se priorizan y se planifican en un sprint. Las propuestas las revisa el Product Owner
+contra el MoSCoW del ConOps, que fija el alcance de la versión 1.0:
+
+- **Si el ConOps la recoge como *Must*, *Should* o *Could*,** la convierte en una historia de
+  usuario del backlog, o la añade a la HU que ya la cubre.
+- **Si el ConOps la marca como *Won't* o no la recoge,** cierra la issue indicando que queda fuera
+  de la 1.0 y que se podrá retomar después. Es el caso de las que salen de Málaga, usan la ubicación
+  en tiempo real o pintan las rutas o el mapa de calor sobre el mapa (ver
+  [Limitaciones](README.md#-limitaciones)).
 
 No incluyas datos personales reales, contraseñas ni tokens en una issue.
 
