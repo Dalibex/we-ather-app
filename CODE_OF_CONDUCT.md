@@ -51,8 +51,14 @@ oficial o actuando como representante en un evento.
 ## Aplicación
 
 Los casos de comportamiento abusivo, acosador o inaceptable pueden comunicarse de forma privada a
-las personas responsables de aplicarlo: el mantenedor del repositorio (Dalibex), a través de
-GitHub. Todas las quejas se revisarán e investigarán con rapidez y de forma justa.
+cualquiera de las personas responsables de aplicarlo:
+
+- @Dalibex, mantenedor y responsable del repositorio.
+- @AlejandroCuetoDiaz, Product Owner.
+- @Lewas88, Scrum Master.
+
+Si la queja afecta a una de ellas, comunícala a cualquiera de las otras dos, que la tratarán sin
+esa persona. Todas las quejas se revisarán e investigarán con rapidez y de forma justa.
 
 Las personas responsables están obligadas a respetar la privacidad y la seguridad de quien informe
 de un incidente.
