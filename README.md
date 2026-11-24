@@ -36,10 +36,10 @@ cd frontend && pnpm install && pnpm dev:web
 
 ## Documentación
 
-- [ConOps](docs/PDF%20Entregados/DocumentoConOps.pdf): propósito, actores, objetivos y alcance
+- [ConOps](docs/ConOps.md): propósito, actores, objetivos y alcance
   (MoSCoW).
 - [Diagrama Tropos](docs/ESQUEMA_TROPOS.png): dependencias entre actores y objetivos.
-- [Práctica 3-6: Gestión](docs/PDF%20Entregados/Pr%C3%A1ctica%203-6%20Gesti%C3%B3n.pdf):
+- [Práctica 3-6: Gestión](docs/Practica_3-6_Gestion.md):
   priorización, planificación del Sprint 1, métricas y proceso Scrum.
 - [Política de privacidad](docs/privacidad.md): qué datos trata la app, durante cuánto tiempo y
   cómo ejercer tus derechos.
