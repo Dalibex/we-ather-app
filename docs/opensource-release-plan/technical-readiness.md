@@ -14,18 +14,26 @@ we-ather-app/
 └── .githooks/  pre-commit (formato)
 ```
 
-Monorepo con una carpeta por parte desplegable: backend/ (Spring Boot 4, Java 25, PostgreSQL con PostGIS y Flyway) y frontend/ (workspace pnpm con apps/mobile en Expo y apps/web en Vite). La raíz solo guarda lo común: README, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, CHANGELOG, .github/ y .githooks/. La documentación técnica está en docs/ (development.md, privacidad.md, fuentes-datos.md, atribuciones.md), junto al ConOps y la Práctica 3-6 en Markdown.
+Monorepo con una carpeta por parte desplegable: backend/ (Spring Boot 4, Java 25, PostgreSQL con
+PostGIS y Flyway) y frontend/ (workspace pnpm con apps/mobile en Expo y apps/web en Vite). La raíz
+solo guarda lo común: README, LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, CHANGELOG, .github/
+y .githooks/. La documentación técnica está en docs/ (development.md, privacidad.md,
+fuentes-datos.md, atribuciones.md), junto al ConOps y la Práctica 3-6 en Markdown.
 
 ## 2. Secretos y datos sensibles
 
 **Sin secretos reales** en el código ni en el historial.
 
-- Credenciales por variables de entorno (`POSTGRES_PASSWORD`, `JWT_SECRET` sin valor por defecto), `.env` ignorado y bloqueado en CI, token móvil en `expo-secure-store`, CI con permisos mínimos y sin `secrets`.
-- Clave JWT **de pruebas** en `backend/src/test/resources/config/application.yaml`, marcada como tal y fuera del `.jar`. Riesgo bajo.
+- Credenciales por variables de entorno (`POSTGRES_PASSWORD`, `JWT_SECRET` sin valor por defecto),
+  `.env` ignorado y bloqueado en CI, token móvil en `expo-secure-store`, CI con permisos mínimos y
+  sin `secrets`.
+- Clave JWT **de pruebas** en `backend/src/test/resources/config/application.yaml`, marcada como tal
+  y fuera del `.jar`. Riesgo bajo.
 
 ## 3. Dependencias y licencias
 
-**Licencia del proyecto MIT, compatible con todo el árbol.** Inventario completo: 9402 paquetes npm de producción (68 con desarrollo) y 103 artefactos Maven de ejecución.
+**Licencia del proyecto MIT, compatible con todo el árbol.** Inventario completo: 402 paquetes npm
+de producción (689 contando también los de desarrollo) y 103 artefactos Maven de ejecución.
 
 - Mayoría MIT / Apache-2.0 / BSD / ISC. Ninguna copyleft fuerte (GPL/AGPL) obligatoria:
   - Logback (EPL-2.0 o LGPL-2.1) y Jakarta EE (EPL-2.0 o GPL-2 con excepción): se usan bajo EPL.
@@ -35,10 +43,14 @@ Monorepo con una carpeta por parte desplegable: backend/ (Spring Boot 4, Java 25
 
 ## 4. Configuración y parámetros
 
-Toda la configuración está en `application.yaml`, con propiedades tipadas (`@ConfigurationProperties` como records que validan en el constructor) y un `application.yaml` de test que desactiva las tareas periódicas.
+Toda la configuración está en `application.yaml`, con propiedades tipadas
+(`@ConfigurationProperties` como records que validan en el constructor) y un `application.yaml` de
+test que desactiva las tareas periódicas.
 
-  - Secretos solo por entorno: el servidor no arranca sin `JWT_SECRET` y rechaza claves de menos de 256 bits.
-  - Valores seguros por defecto: `ddl-auto=validate` (Flyway manda), `open-in-view=false`, sesión `STATELESS`, Actuator limitado a `health`, Postgres solo en `127.0.0.1`.
+  - Secretos solo por entorno: el servidor no arranca sin `JWT_SECRET` y rechaza claves de menos de
+    256 bits.
+  - Valores seguros por defecto: `ddl-auto=validate` (Flyway manda), `open-in-view=false`, sesión
+    `STATELESS`, Actuator limitado a `health`, Postgres solo en `127.0.0.1`.
   - Variables principales documentadas en `.env.example` y `docs/development.md`.
 
 ## 5. Tests, CI/CD y automatización
@@ -46,15 +58,18 @@ Toda la configuración está en `application.yaml`, con propiedades tipadas (`@C
 **CI únicamente; no hay CD por el momento.**
 
 - **Tests:**
-  - Backend: 196 casos en 41 ficheros (29 unitarios y 12 de integración con Testcontainers sobre PostGIS real).
-  - App móvil: 117 casos en 12 ficheros (Jest + Testing Library).
+  - Backend: 196 casos en 41 ficheros (29 unitarios y 12 de integración con Testcontainers sobre
+    PostGIS real).
+  - App móvil: 145 casos en 12 ficheros (Jest + Testing Library).
 - **CI (GitHub Actions)**, en cada PR y en `main`:
   - `lint`: formato con Spotless, ningún `.env` versionado y Compose válido.
   - `test`: `mvn verify` con SpotBugs y JaCoCo, que exige **un 70 % de líneas cubiertas**.
   - `frontend`: formato, lint, tipos, tests y build.
   - `pr-title`: título en Conventional Commits.
-  - CodeQL y Dependabot activos. Las últimas 10 ejecuciones en `main` están en verde y tardan unos 2 minutos.
-- **Ruleset de `main`:** los 5 checks son obligatorios con la rama al día, hace falta 1 aprobación, solo se fusiona con squash, con historial lineal y sin force-push.
+  - CodeQL y Dependabot activos. Las últimas 10 ejecuciones en `main` están en verde y tardan unos 2
+    minutos.
+- **Ruleset de `main`:** los 5 checks son obligatorios con la rama al día, hace falta 1 aprobación,
+  solo se fusiona con squash, con historial lineal y sin force-push.
 - **Hook pre-commit:** formatea Java y TypeScript antes de cada commit.
 
 ## 6. Tres riesgos técnicos antes de publicar
