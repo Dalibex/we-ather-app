@@ -45,8 +45,8 @@ Restricciones que no se negocian:
 | Pregunta | Fuente |
 | --- | --- |
 | Qué está construido hoy | *Estado actual* en `README.md`; después, el código |
-| Alcance (MoSCoW), actores y objetivos (`OBJ-…`, `MIT-…`) | ConOps: `docs/PDF Entregados/DocumentoConOps.pdf` (el MoSCoW está en la sección 5) |
-| Priorización, planificación del sprint y proceso Scrum | `docs/PDF Entregados/Práctica 3-6 Gestión.pdf`; lo que afecta al día a día está resumido en `CONTRIBUTING.md` |
+| Alcance (MoSCoW), actores y objetivos (`OBJ-…`, `MIT-…`) | ConOps: `docs/ConOps.md` (el MoSCoW está en la sección 5) |
+| Priorización, planificación del sprint y proceso Scrum | `docs/Practica_3-6_Gestion.md`; lo que afecta al día a día está resumido en `CONTRIBUTING.md` |
 | Qué hay que hacer y en qué sprint | Las issues de historia de usuario (`[HU-XX]`) y sus tareas (`[T-XX.n]`), con su milestone |
 | Arranque local y comandos | `docs/development.md` |
 | Qué datos personales se tratan, plazos y derechos (lo que se promete al usuario) | `docs/privacidad.md` |

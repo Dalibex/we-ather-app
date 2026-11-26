@@ -9,9 +9,9 @@ Todo el proyecto se escribe en español: documentación, issues, pull requests y
 
 | Documento | Qué contiene |
 | --- | --- |
-| [ConOps](docs/PDF%20Entregados/DocumentoConOps.pdf) | Propósito, actores, objetivos (`OBJ-…`), mitigaciones (`MIT-…`) y el alcance MoSCoW (sección 5) |
+| [ConOps](docs/ConOps.md) | Propósito, actores, objetivos (`OBJ-…`), mitigaciones (`MIT-…`) y el alcance MoSCoW (sección 5) |
 | [Diagrama Tropos](docs/ESQUEMA_TROPOS.png) | Red de dependencias entre actores y objetivos |
-| [Práctica 3-6: Gestión](docs/PDF%20Entregados/Pr%C3%A1ctica%203-6%20Gesti%C3%B3n.pdf) | Priorización del backlog, planificación del Sprint 1, métricas y proceso Scrum |
+| [Práctica 3-6: Gestión](docs/Practica_3-6_Gestion.md) | Priorización del backlog, planificación del Sprint 1, métricas y proceso Scrum |
 | [Desarrollo local](docs/development.md) | Requisitos, arranque, comprobaciones y hook `pre-commit` |
 
 Si algo de esta guía choca con el ConOps en el alcance, manda el ConOps y se avisa al Product Owner.
